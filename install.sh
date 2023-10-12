@@ -311,6 +311,26 @@ while true; do
                             cd >> "$(dirname "$0")/enginegp_install.log" 2>&1
                         fi
                     fi
+
+                    # Устанавливаем базу данных и phpMyAdmin
+                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
+                        sudo debconf-set-selections <<EOF
+mysql-apt-config mysql-apt-config/select-server select mysql-8.0
+mysql-apt-config mysql-apt-config/select-tools select Enabled
+mysql-apt-config mysql-apt-config/select-preview select Disabled
+EOF
+                        sudo curl -sSLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb
+                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb
+                        sudo apt-get update
+                        sudo rm mysql-apt-config_0.8.26-1_all.deb
+                        export DEBIAN_FRONTEND="noninteractive"
+                        sudo debconf-set-selections <<EOF
+mysql-community-server mysql-community-server/root-pass password 123456789
+mysql-community-server mysql-community-server/re-root-pass password 123456789
+mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
+EOF
+                        sudo apt-get install mysql-server
+                    fi
                 done
 
                 # Перезапускаем apache
