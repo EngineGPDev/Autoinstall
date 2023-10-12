@@ -312,7 +312,7 @@ while true; do
                         fi
                     fi
 
-                    # Устанавливаем базу данных и phpMyAdmin
+                    # Устанавливаем базу данных
                     if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
                         sudo debconf-set-selections <<EOF
 mysql-apt-config mysql-apt-config/select-server select mysql-8.0
