@@ -17,7 +17,7 @@ for package in "${pkgsREQ[@]}"; do
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
         clear
         echo "$package не установлен. Выполняется установка..."
-        apt-get install -y "$package"
+        apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
     fi
 done
 
@@ -139,7 +139,8 @@ while true; do
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
-                pkgsALL=(ufw memcached unzip bc cron apache2 libapache2-mpm-itk php$verPHP php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-memcached php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml libapache2-mod-php$verPHP nginx)
+                pkgsLNAMP=(apache2 php php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl libapache2-mod-php libapache2-mod-fcgid nginx phpmyadmin)
+                pkgsEGP=(ufw memcached unzip bc cron php$verPHP php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-memcached php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml libapache2-mod-php$verPHP)
 
                 apache_ports="Listen 8080
 
@@ -150,33 +151,6 @@ while true; do
 <IfModule mod_gnutls.c>
     Listen 443
 </IfModule>"
-
-                # Конфигурация apache для EngineGP
-                apache_enginegp="<VirtualHost *:8080>
-    ServerName $sysIP
-    DocumentRoot /var/enginegp
-    ErrorLog /var/log/enginegp/apache_enginegp_error.log
-    CustomLog /var/log/enginegp/apache_enginegp_access.log combined
-
-    <IfModule mpm_itk_module>
-         AssignUserID www-data www-data
-    </IfModule>
-
-    <Directory />
-         Options FollowSymLinks
-         AllowOverride All
-    </Directory>
-
-    <Directory /var/enginegp/>
-         Options Indexes FollowSymLinks
-         AllowOverride All
-         Require all granted
-
-         <FilesMatch \.php$>
-             SetHandler application/x-httpd-php
-         </FilesMatch>
-    </Directory>
-</VirtualHost>"
 
                 # Конфигурация nginx для EngineGP
                 nginx_enginegp="server {
@@ -215,36 +189,149 @@ while true; do
         deny all;
     }
 }"
+                # Установка стека LNAMP + phpMyAdmin
                 # Цикл установки пакетов
-                for package in "${pkgsALL[@]}"; do
-                    # Проверяем наличие php
+                for package in "${pkgsLNAMP[@]}"; do
+                    # Проверяем наличие репозитория sury php
                     if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
                         # Добавляем репозиторий php
                         sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x
 
                         # Обновление таблиц
-                        apt-get -y update
+                        apt-get -y update >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Определяем версию php по умолчанию
+                        defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
+                    fi
+
+                    # Устанавливаем базу данных
+                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
+                        sudo debconf-set-selections <<EOF
+mysql-apt-config mysql-apt-config/select-server select mysql-8.0
+mysql-apt-config mysql-apt-config/select-tools select Enabled
+mysql-apt-config mysql-apt-config/select-preview select Disabled
+EOF
+                        sudo curl -sSLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb
+                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb
+                        sudo apt-get update >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo rm mysql-apt-config_0.8.26-1_all.deb >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo debconf-set-selections <<EOF
+mysql-community-server mysql-community-server/root-pass password 123456789
+mysql-community-server mysql-community-server/re-root-pass password 123456789
+mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
+EOF
+                        sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> "$(dirname "$0")/enginegp_install.log" 2>&1
                     fi
 
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "$package не установлен. Выполняется установка..."
-                        apt-get install -y "$package"
+                        sudo apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    fi
+
+                    # Проверяем установку php-fpm
+                    if dpkg-query -W -f='${Status}' "php$defPHP-fpm" 2>/dev/null | grep -q "install ok installed"; then
+                        if ! systemctl is-active --quiet php$defPHP-fpm; then
+                            sudo systemctl start php$defPHP-fpm >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        fi
+                    fi
+                    
+                    # Настраиваем apache
+                    if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
+                        # Конфигурация apache для EngineGP
+                        apache_enginegp="<VirtualHost *:8080>
+    ServerName $sysIP
+    DocumentRoot /var/www/enginegp
+    DirectoryIndex index.php index.html
+    ErrorLog /var/log/enginegp/apache_enginegp_error.log
+    CustomLog /var/log/enginegp/apache_enginegp_access.log combined
+
+    <Directory />
+        Options FollowSymLinks
+        AllowOverride All
+    </Directory>
+
+    <Directory /var/www/enginegp>
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride All
+        Order allow,deny
+        allow from all
+     </Directory>
+
+     <FilesMatch \.php$>
+      # For Apache version 2.4.10 and above, use SetHandler to run PHP as a fastCGI process server
+      SetHandler \"proxy:unix:/run/php/php$defPHP-fpm.sock|fcgi://localhost\"
+    </FilesMatch>
+</VirtualHost>"
+
+                        # Разрешаем доступ к портам
+                        sudo ufw allow 80 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo ufw allow 443 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Включаем модули Apache
+                        sudo a2enmod actions fcgid alias proxy_fcgi >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo systemctl restart apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Создаём каталог EngineGP и выдаём права
+                        sudo mkdir /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo chown -R www-data:www-data /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo chmod -R 755 /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Создаем виртуальный хостинг для EngineGP
+                        echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Изменяем порт, на котором слушает Apache
+                        sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "Listen 8080" | sudo tee /etc/apache2/ports.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                        # Проводим тестирование и запускаем конфиг Apache
+                        sudo apachectl configtest >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo a2ensite enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo a2dissite 000-default.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        sudo systemctl restart apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    fi
+
+                    # Настраиваем nginx
+                    if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
+                        
+                    fi
+                    
+                    # Установка phpMyAdmin
+                    if dpkg-query -W -f='${Status}' "libapache2-mod-php" 2>/dev/null | grep -q "install ok installed"; then
+                        # Проверка на наличие и установка пакетов
+                        if ! dpkg-query -W -f='${Status}' "phpmyadmin" 2>/dev/null | grep -q "install ok installed"; then
+                            echo "phpmyadmin не установлен. Выполняется установка..."
+                            sudo debconf-set-selections <<EOF
+phpmyadmin phpmyadmin/dbconfig-install boolean true
+phpmyadmin phpmyadmin/mysql/app-pass password 1234567890
+phpmyadmin phpmyadmin/password-confirm password 1234567890
+phpmyadmin phpmyadmin/mysql/admin-pass password 123456789
+phpmyadmin phpmyadmin/app-password-confirm password 123456789
+phpmyadmin phpmyadmin/reconfigure-webserver multiselect
+EOF
+                            sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                            sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
+                            sudo a2enconf phpmyadmin.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                            sudo systemctl reload apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        fi
+                    fi
+                done
+
+                # Установка EngineGP
+                # Цикл установки пакетов
+                for package in "${pkgsEGP[@]}"; do
+                    # Создаём папку для записи логов
+                    sudo mkdir /var/log/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+
+                    # Проверка на наличие и установка пакетов
+                    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
+                        echo "$package не установлен. Выполняется установка..."
+                        apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
                     fi
 
                     # Проверяем установку apache
                     if dpkg-query -W -f='${Status}' "libapache2-mod-php$verPHP" 2>/dev/null | grep -q "install ok installed"; then
                         if [ ! -f /etc/apache2/sites-available/enginegp.conf ]; then
-                            # Разрешаем доступ к портам
-                            sudo ufw allow 80 >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                            sudo ufw allow 443 >> "$(dirname "$0")/enginegp_install.log" 2>&1
-
-                            # Изменяем порт, на котором слушает Apache
-                            echo -e "$apache_ports" | sudo tee /etc/apache2/ports.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
-
-                            # Создаём папку для записи логов, если ещё не создана
-                            sudo mkdir /var/log/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-
                             # Отключаем конфигурационный файл 000-default.conf
                             sudo a2dissite 000-default.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
@@ -260,35 +347,27 @@ while true; do
                             # Включаем rewrite
                             sudo a2enmod rewrite >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
-                            # Включаем MPM-ITK
-                            sudo a2enmod mpm_itk >> "$(dirname "$0")/enginegp_install.log" 2>&1
-
-                            # Включаем mod_php
-                            sudo a2enmod php$verPHP >> "$(dirname "$0")/enginegp_install.log" 2>&1
-
                             # Перезапускаем apache
                             sudo systemctl restart apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
                         fi
                     fi
 
                     # Проверяем установку nginx
-                    if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
-                        if [ ! -f /etc/nginx/sites-available/enginegp.conf ]; then
-                            # Создаём папку для записи логов, если ещё не создана
-                            sudo mkdir /var/log/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    if [ ! -f /etc/nginx/sites-available/enginegp.conf ]; then
+                        # Создаём папку для записи логов, если ещё не создана
+                        sudo mkdir /var/log/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
-                            # Создаем виртуальный хостинг для EngineGP
-                            echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        # Создаем виртуальный хостинг для EngineGP
+                        echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
-                            # Создаём симлинк конфига NGINX
-                            sudo ln -s /etc/nginx/sites-available/enginegp.conf /etc/nginx/sites-enabled/ >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        # Создаём симлинк конфига NGINX
+                        sudo ln -s /etc/nginx/sites-available/enginegp.conf /etc/nginx/sites-enabled/ >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
-                            # Проверяем конфиг nginx и выводим в логи
-                            sudo nginx -t >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        # Проверяем конфиг nginx и выводим в логи
+                        sudo nginx -t >> "$(dirname "$0")/enginegp_install.log" 2>&1
 
-                            # Перезапускаем nginx
-                            sudo systemctl restart nginx >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        fi
+                        # Перезапускаем nginx
+                        sudo systemctl restart nginx >> "$(dirname "$0")/enginegp_install.log" 2>&1
                     fi
 
                     # Устанавливаем панель
@@ -305,31 +384,11 @@ while true; do
 
                             # Установка и настрока composer
                             curl -o composer-setup.php https://getcomposer.org/installer >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                            php composer-setup.php --install-dir=/usr/local/bin --filename=composer >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                            php$verPHP composer-setup.php --install-dir=/usr/local/bin --filename=composer >> "$(dirname "$0")/enginegp_install.log" 2>&1
                             cd /var/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
                             sudo composer install --no-interaction >> "$(dirname "$0")/enginegp_install.log" 2>&1
                             cd >> "$(dirname "$0")/enginegp_install.log" 2>&1
                         fi
-                    fi
-
-                    # Устанавливаем базу данных
-                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
-                        sudo debconf-set-selections <<EOF
-mysql-apt-config mysql-apt-config/select-server select mysql-8.0
-mysql-apt-config mysql-apt-config/select-tools select Enabled
-mysql-apt-config mysql-apt-config/select-preview select Disabled
-EOF
-                        sudo curl -sSLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb
-                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb
-                        sudo apt-get update
-                        sudo rm mysql-apt-config_0.8.26-1_all.deb
-                        export DEBIAN_FRONTEND="noninteractive"
-                        sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password 123456789
-mysql-community-server mysql-community-server/re-root-pass password 123456789
-mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
-EOF
-                        sudo apt-get install mysql-server
                     fi
                 done
 
