@@ -1,31 +1,37 @@
 #!/bin/bash
 # Обновление таблиц и системы
 sysUpdate (){
-    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-    echo "Обновление системы..." | tee -a "$(dirname "$0")/enginegp_install.log"
-    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-    apt-get -y update >> "$(dirname "$0")/enginegp_install.log" 2>&1
-    apt-get -y upgrade >> "$(dirname "$0")/enginegp_install.log" 2>&1
+    echo "===================================" >> $logsINST 2>&1
+    echo "Обновление системы..." | tee -a $logsINST
+    echo "===================================" >> $logsINST 2>&1
+    apt-get -y update >> $logsINST 2>&1
+    apt-get -y upgrade >> $logsINST 2>&1
 }
+
+# Очистка экрана перед установкой
+clear
+
+# Создаём переменную для логов
+logsINST="$(dirname "$0")/enginegp_install.log"
 
 # Обновление системы
 sysUpdate
 
 # Установка начальных пакетов.
 # lsb-release wget gnupg - Требуются для MySQL. В остальном зависимость не проверялась.
-pkgsREQ=(sudo curl lsb-release wget gnupg)
+pkgsREQ=(sudo curl lsb-release wget gnupg rsync)
 
 # Цикл установки пакетов
 for package in "${pkgsREQ[@]}"; do
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
-        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-        echo "$package не установлен. Выполняется установка..."  | tee -a "$(dirname "$0")/enginegp_install.log"
-        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-        apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+        echo "===================================" >> $logsINST 2>&1
+        echo "$package не установлен. Выполняется установка..."  | tee -a $logsINST
+        echo "===================================" >> $logsINST 2>&1
+        apt-get install -y "$package" >> $logsINST 2>&1
     else
-        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-        echo "$package уже установлен в системе." | tee -a "$(dirname "$0")/enginegp_install.log"
-        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+        echo "===================================" >> $logsINST 2>&1
+        echo "$package уже установлен в системе." | tee -a $logsINST
+        echo "===================================" >> $logsINST 2>&1
     fi
 done
 
@@ -91,12 +97,12 @@ if [ $# -gt 0 ]; then
     # Если версия EngineGP не выбрана, использовать последнюю стабильную версию
     if [ -z "$verEGP" ]; then
         LATEST_URL="$resURL/latest"
-        verEGP=$(curl -s "$LATEST_URL" | awk 'NR==1 {print $2}')
+        verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
     fi
 
     # Если версия PHP не выбрана, использовать PHP 8.0 по умолчанию
     if [ -z "$verPHP" ]; then
-        verPHP="7.0"
+        verPHP="7.1"
     fi
 
     # Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
@@ -107,9 +113,9 @@ else
     # Получаем последнюю версию EngineGP из файла на сайте
     LATEST_URL="$resURL/latest"
     # Если нет аргументов, задаём по умолчанию
-    verEGP=$(curl -s "$LATEST_URL" | awk 'NR==1 {print $2}')
+    verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
     filesEGP=$verEGP
-    verPHP="7.0"
+    verPHP="7.1"
     sysIP=$(curl -s ipinfo.io/ip)
 fi
 
@@ -155,21 +161,21 @@ while true; do
                 # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
                 if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "Репозиторий php не обнаружен. Добавляем..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                     # Добавляем репозиторий php
-                    sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> $logsINST 2>&1
 
                     # Обновление таблиц
-                    apt-get -y update >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    apt-get -y update >> $logsINST 2>&1
 
                     # Определяем версию php по умолчанию
                     defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "Репозиторий php обнаружен." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий php обнаружен." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                 fi
 
                 # Конфигурация apache для EngineGP
@@ -239,43 +245,44 @@ while true; do
 
                 # Устанавливаем базу данных
                 if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "mysql-server не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                    sudo curl -sSLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo apt-get update >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo rm mysql-apt-config_0.8.26-1_all.deb >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo apt-get update >> $logsINST 2>&1
+                    sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password 123456789
 mysql-community-server mysql-community-server/re-root-pass password 123456789
 mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
 EOF
-                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    exit 1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Цикл установки пакетов
                 for package in "${pkgsLNAMP[@]}"; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "$package не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        sudo apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        sudo apt-get install -y "$package" >> $logsINST 2>&1
                     else
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "$package уже установлен в системе." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "$package уже установлен в системе." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
                     fi
                 done
 
@@ -283,22 +290,22 @@ EOF
                 for package in "${pkgsEGP[@]}"; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "$package не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        apt-get install -y "$package" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        apt-get install -y "$package" >> $logsINST 2>&1
                     else
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "$package уже установлен в системе." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "$package уже установлен в системе." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
                     fi
                 done
 
                 # Установка phpMyAdmin
                 if ! dpkg-query -W -f='${Status}' "phpmyadmin" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "phpmyadmin не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "phpmyadmin не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
 phpmyadmin phpmyadmin/mysql/app-pass password 1234567890
@@ -307,189 +314,204 @@ phpmyadmin phpmyadmin/mysql/admin-pass password 123456789
 phpmyadmin phpmyadmin/app-password-confirm password 123456789
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
-                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
                     sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
-                    sudo a2enconf phpmyadmin.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo a2enconf phpmyadmin.conf >> $logsINST 2>&1
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "phpmyadmin уже установлен в системе. Продолжение установки невозможно." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    exit 1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "phpmyadmin уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Проверяем установку php-fpm по умолчанию
                 if dpkg-query -W -f='${Status}' "php$defPHP-fpm" 2>/dev/null | grep -q "install ok installed"; then
                     if ! systemctl is-active --quiet php$defPHP-fpm; then
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "php$defPHP-fpm не запущен. Выполняется запуск..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        sudo systemctl start php$defPHP-fpm >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "php$defPHP-fpm не запущен. Выполняется запуск..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        sudo systemctl start php$defPHP-fpm >> $logsINST 2>&1
                     else
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "php$defPHP-fpm уже запущен." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "php$defPHP-fpm уже запущен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
                     fi
                 fi
 
                 # Проверяем установку php-fpm для EngineGP
                 if dpkg-query -W -f='${Status}' "php$verPHP-fpm" 2>/dev/null | grep -q "install ok installed"; then
                     if ! systemctl is-active --quiet php$verPHP-fpm; then
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "php$verPHP-fpm не запущен. Выполняется запуск..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        sudo systemctl start php$verPHP-fpm >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "php$verPHP-fpm не запущен. Выполняется запуск..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        sudo systemctl start php$verPHP-fpm >> $logsINST 2>&1
                     else
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                        echo "php$verPHP-fpm уже запущен." | tee -a "$(dirname "$0")/enginegp_install.log"
-                        echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "php$verPHP-fpm уже запущен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
                     fi
                 fi
                   
                 # Создание каталогов
-                sudo mkdir /var/log/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                sudo mkdir /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                sudo chown -R www-data:www-data /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                sudo chmod -R 755 /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                sudo mkdir /var/log/enginegp >> $logsINST 2>&1
+                sudo mkdir /var/www/enginegp >> $logsINST 2>&1
 
                 # Настраиваем apache
                 if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "apache2 не настроен. Выполняется настройка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "apache2 не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                     # Разрешаем доступ к портам
-                    sudo ufw allow 80 >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo ufw allow 443 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo ufw allow 80 >> $logsINST 2>&1
+                    sudo ufw allow 443 >> $logsINST 2>&1
 
                     # Изменяем порт, на котором сидит Apache
-                    sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "Listen 8080" | sudo tee /etc/apache2/ports.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> $logsINST 2>&1
+                    echo "Listen 8080" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
 
                     # Создаем виртуальный хостинг для EngineGP
-                    echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
 
                     # Включаем модули Apache
-                    sudo a2enmod actions fcgid alias proxy_fcgi >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo systemctl restart apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo a2enmod actions fcgid alias proxy_fcgi >> $logsINST 2>&1
+                    sudo systemctl restart apache2 >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг Apache
-                    sudo apachectl configtest >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo a2ensite enginegp.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo a2dissite 000-default.conf >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo systemctl restart apache2 >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo apachectl configtest >> $logsINST 2>&1
+                    sudo a2ensite enginegp.conf >> $logsINST 2>&1
+                    sudo a2dissite 000-default.conf >> $logsINST 2>&1
+                    sudo systemctl restart apache2 >> $logsINST 2>&1
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "libapache2-mod-fcgid не установлен. Продолжение установки невозможно." >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    exit 1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "libapache2-mod-fcgid не установлен. Продолжение установки невозможно." >> $logsINST 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Настраиваем nginx
                 if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "nginx не настроен. Выполняется настройка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "nginx не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
                     # Удаляем дефолтный и создаём конфиг EngineGP
-                    sudo rm /etc/nginx/sites-enabled/default >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo ln -s /etc/nginx/sites-available/enginegp /etc/nginx/sites-enabled/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
+                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/enginegp >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/enginegp /etc/nginx/sites-enabled/enginegp >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
-                    sudo nginx -t >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo systemctl restart nginx >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    sudo nginx -t >> $logsINST 2>&1
+                    sudo systemctl restart nginx >> $logsINST 2>&1
                 else
-                     echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                     echo "NGINX не установлен. Продолжение установки невозможно." | tee -a "$(dirname "$0")/enginegp_install.log"
-                     echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                     exit 1
+                     echo "===================================" >> $logsINST 2>&1
+                     echo "NGINX не установлен. Продолжение установки невозможно." | tee -a $logsINST
+                     echo "===================================" >> $logsINST 2>&1
+                     read -p "Нажмите Enter для завершения..."
+                     continue
                 fi
 
                 # Установка EngineGP
+                # Создание временной папки
+                sudo mkdir /tmp/enginegp >> $logsINST 2>&1
+
                 # Закачиваем и распаковываем панель
                 if [ ! -f "/var/www/enginegp/index.php" ]; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "enginegp не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo curl -sSL -o /var/www/enginegp.zip "$resURL/$resEGP/$verEGP/$verEGP.zip" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "Ссылка на архив EngineGP" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "$resURL/$resEGP/$verEGP/$verEGP.zip" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo unzip /var/www/enginegp.zip -d /var/www/ >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo mv /var/www/EngineGP-* /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo rm /var/www/enginegp.zip >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    sudo curl -SL -o /tmp/enginegp/enginegp.zip "$resURL/$resEGP/$verEGP/$verEGP.zip" >> $logsINST 2>&1
+                    sudo unzip /tmp/enginegp/enginegp.zip -d /tmp/enginegp/ >> $logsINST 2>&1
+                    sudo rsync -av /tmp/enginegp/EngineGP-*/. /var/www/enginegp/ >> $logsINST 2>&1
+                    sudo rm /tmp/enginegp/enginegp.zip >> $logsINST 2>&1
+                    sudo rm -r /tmp/enginegp/EngineGP-* >> $logsINST 2>&1
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    exit 1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Установка и настрока composer
                 if [ ! -d "/var/www/enginegp/vendor" ]; then
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "composer не установлен. Выполняется установка..." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    curl -o composer-setup.php https://getcomposer.org/installer >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    php$verPHP composer-setup.php --install-dir=/usr/local/bin --filename=composer >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    cd /var/www/enginegp >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    sudo composer install --no-interaction >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    cd >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "composer не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    curl -o /tmp/enginegp/composer-setup.php https://getcomposer.org/installer >> $logsINST 2>&1
+                    php$verPHP /tmp/enginegp/composer-setup.php --install-dir=/usr/local/bin --filename=composer >> $logsINST 2>&1
+                    sudo rm /tmp/enginegp/composer-setup.php >> $logsINST 2>&1
+                    sudo composer install --no-interaction --working-dir=/var/www/enginegp >> $logsINST 2>&1
                 else
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    echo "composer уже установлен в системе. Продолжение установки невозможно." | tee -a "$(dirname "$0")/enginegp_install.log"
-                    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                    exit 1
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "composer уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
+                # Выставляем права на каталог
+                sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
+                sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
+
                 # Сообщение о завершении установки
-                echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                echo "Установка завершена!" | tee -a "$(dirname "$0")/enginegp_install.log"
-                echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                echo "===================================" >> $logsINST 2>&1
+                echo "Установка завершена!" | tee -a $logsINST
+                echo "===================================" >> $logsINST 2>&1
+                read -p "Нажмите Enter для завершения..."
+                continue
             else
-                echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-                echo "Вы используете неподдерживаемую версию Linux" | tee -a "$(dirname "$0")/enginegp_install.log"
-                echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+                echo "===================================" >> $logsINST 2>&1
+                echo "Вы используете неподдерживаемую версию Linux" | tee -a $logsINST
+                echo "===================================" >> $logsINST 2>&1
+                read -p "Нажмите Enter для завершения..."
             fi
             ;;
         2)
             clear
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-            echo "Вы выбрали: Настройка сервера под игры" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+            echo "===================================" >> $logsINST 2>&1
+            echo "Вы выбрали: Настройка сервера под игры" | tee -a $logsINST
+            echo "===================================" >> $logsINST 2>&1
             # Здесь добавить код для настройки сервера под игры
+            read -p "Нажмите Enter для завершения..."
+            continue
             ;;
         3)
             clear
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-            echo "Вы выбрали: Установка игровых сборок" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+            echo "===================================" >> $logsINST 2>&1
+            echo "Вы выбрали: Установка игровых сборок" | tee -a $logsINST
+            echo "===================================" >> $logsINST 2>&1
             # Здесь добавить код для установки игровых сборок
+            read -p "Нажмите Enter для завершения..."
+            continue
             ;;
         4)
             clear
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-            echo "Последняя версия EngineGP: $verEGP" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "Текущая версия Linux: $currOS" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "Внешний IP-адрес: $sysIP" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "Версия php: $verPHP" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+            echo "===================================" >> $logsINST 2>&1
+            echo "Последняя версия EngineGP: $verEGP" | tee -a $logsINST
+            echo "Текущая версия Linux: $currOS" | tee -a $logsINST
+            echo "Внешний IP-адрес: $sysIP" | tee -a $logsINST
+            echo "Версия php: $verPHP" | tee -a $logsINST
+            echo "===================================" >> $logsINST 2>&1
+            read -p "Нажмите Enter для выхода в главное меню..."
+            continue
             ;;
         0)
             clear
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-            echo "До свидания!" | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+            echo "===================================" >> $logsINST 2>&1
+            echo "До свидания!" | tee -a $logsINST
+            echo "===================================" >> $logsINST 2>&1
             exit 0
             ;;
         *)
             clear
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$(dirname "$0")/enginegp_install.log"
-            echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+            echo "===================================" >> $logsINST 2>&1
+            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+            echo "===================================" >> $logsINST 2>&1
             ;;
     esac
 
-    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
-    echo "Нажмите Enter, чтобы продолжить..." | tee -a "$(dirname "$0")/enginegp_install.log"
-    echo "===================================" >> "$(dirname "$0")/enginegp_install.log" 2>&1
+    echo "===================================" >> $logsINST 2>&1
+    echo "Нажмите Enter, чтобы продолжить..." | tee -a $logsINST
+    echo "===================================" >> $logsINST 2>&1
 done
