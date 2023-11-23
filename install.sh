@@ -21,7 +21,7 @@ saveDIR="/root/enginegp.cfg"
 sysUpdate
 
 # Установка начальных пакетов.
-pkgsREQ=(sudo curl lsb-release wget gnupg rsync pwgen zip unzip bc tar)
+pkgsREQ=(sudo curl lsb-release wget gnupg rsync pwgen zip unzip bc tar software-properties-common)
 
 # Цикл установки пакетов
 for package in "${pkgsREQ[@]}"; do
@@ -37,11 +37,13 @@ for package in "${pkgsREQ[@]}"; do
     fi
 done
 
-# Массив с поддерживаемыми версиями Debian
-suppOS=("Debian 10" "Debian 11")
+# Массив с поддерживаемыми версиями операционной системы
+suppOS=("Debian 10" "Debian 11" "Ubuntu 22.04")
 
 # Получаем текущую версию операционной системы
-currOS=`cat /etc/issue.net | awk '{print $1,$3}'`
+disOS=`lsb_release -si`
+relOS=`lsb_release -sr`
+currOS="$disOS $relOS"
 
 # Файловый репозиторий
 resURL="https://resources.enginegp.com"
@@ -88,7 +90,7 @@ if [ $# -gt 0 ]; then
                 clear
                 echo "Использование: ./install.sh [--release версия] [--php версия] [--sql версия] [--ip IP-адрес]"
                 echo "  --release версия: установить указанную версию EngineGP. Формат должен быть: 3630"
-                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 7.0"
+                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 7.1"
                 echo "  --sql версия: установить указанную базу данный. Формат должен быть: mysql или mariadb"
                 echo "  --ip IP-адрес: использовать указанный IP-адрес. Формат должен быть: 192.168.1.1"
                 exit 1
@@ -104,7 +106,7 @@ if [ $# -gt 0 ]; then
 
     # Если версия PHP не выбрана, использовать PHP 8.0 по умолчанию
     if [ -z "$verPHP" ]; then
-        verPHP="7.1"
+        verPHP="7.2"
     fi
 
     # Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
@@ -162,22 +164,36 @@ while true; do
 
                 # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
-                if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
+                if [[ " ${disOS} " =~ " Debian " ]]; then
+                    if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий php
+                        sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> $logsINST 2>&1
+
+                        # Обновление таблиц
+                        apt-get -y update >> $logsINST 2>&1
+
+                        # Определяем версию php по умолчанию
+                        defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий php обнаружен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                    fi
+                else
                     echo "===================================" >> $logsINST 2>&1
                     echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     # Добавляем репозиторий php
-                    sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> $logsINST 2>&1
+                    sudo add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
 
                     # Обновление таблиц
                     apt-get -y update >> $logsINST 2>&1
 
                     # Определяем версию php по умолчанию
                     defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий php обнаружен." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
                 fi
 
                 # Конфигурация apache для EngineGP
@@ -376,7 +392,7 @@ EOF
                     echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
 
                     # Включаем модули Apache
-                    sudo a2enmod actions fcgid alias proxy_fcgi >> $logsINST 2>&1
+                    sudo a2enmod actions fcgid alias proxy_fcgi rewrite >> $logsINST 2>&1
                     sudo systemctl restart apache2 >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг Apache
