@@ -231,12 +231,12 @@ while true; do
         proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
-    location ~* \.(gif|jpeg|jpg|txt|png|tif|tiff|ico|jng|bmp|doc|pdf|rtf|xls|ppt|rar|rpm|swf|zip|bin|exe|dll|deb|cur)$ {
+    location ~* /\.(gif|jpeg|jpg|txt|png|tif|tiff|ico|jng|bmp|doc|pdf|rtf|xls|ppt|rar|rpm|swf|zip|bin|exe|dll|deb|cur)$ {
         access_log off;
         expires 3d;
     }
 
-    location ~* \.(css|js)$ {
+    location ~* /\.(css|js)$ {
         access_log off;
         expires 180m;
     }
