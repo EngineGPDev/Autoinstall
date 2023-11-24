@@ -104,7 +104,7 @@ if [ $# -gt 0 ]; then
         verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
     fi
 
-    # Если версия PHP не выбрана, использовать PHP 8.0 по умолчанию
+    # Если версия PHP не выбрана, использовать PHP 7.2 по умолчанию
     if [ -z "$verPHP" ]; then
         verPHP="7.2"
     fi
@@ -119,7 +119,7 @@ else
     # Если нет аргументов, задаём по умолчанию
     verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
     filesEGP=$verEGP
-    verPHP="7.1"
+    verPHP="7.2"
     sysIP=$(curl -s ipinfo.io/ip)
 fi
 
