@@ -468,10 +468,8 @@ EOF
                     sudo composer install --no-interaction --working-dir=/var/www/enginegp >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
-                    echo "composer уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "composer уже установлен в системе." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
                 fi
 
                 # Выставляем права на каталог
