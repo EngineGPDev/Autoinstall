@@ -196,6 +196,18 @@ while true; do
                     defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
                 fi
 
+                # Генерирование паролей и имён
+                passSQL=$(pwgen -cnys -1 16)
+                safePassSQL=$(printf '%s\n' "$passSQL" | sed -e 's/[\&/]/\\&/g')
+                passPMA=$(pwgen -cnys -1 16)
+                safePassPMA=$(printf '%s\n' "$passPMA" | sed -e 's/[\&/]/\\&/g')
+                usrEgpSQL="enginegp_$(pwgen -1 8)"
+                dbEgpSQL="enginegp_$(pwgen -1 8)"
+                passEgpSQL=$(pwgen -cnys -1 16)
+                safePassEgpSQL=$(printf '%s\n' "$passEgpSQL" | sed -e 's/[\&/]/\\&/g')
+                usrEgpPASS=$(pwgen -cns -1 16)
+                usrEgpHASH=$(echo -n "$usrEgpPASS" | md5sum | sed 's/ -//')
+
                 # Конфигурация apache для EngineGP
                 apache_enginegp="<VirtualHost *:8080>
      ServerName $sysIP
@@ -276,11 +288,23 @@ EOF
                     sudo apt-get update >> $logsINST 2>&1
                     sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password 123456789
-mysql-community-server mysql-community-server/re-root-pass password 123456789
+mysql-community-server mysql-community-server/root-pass password $safePassSQL
+mysql-community-server mysql-community-server/re-root-pass password $safePassSQL
 mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
+
+                    # Создание пользователя
+                    mysql -h localhost -u root -p$safePassSQL -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$safePassEgpSQL';" >> $logsINST 2>&1
+
+                    # Создание базы данных
+                    mysql -h localhost -u root -p$safePassSQL -e "CREATE DATABASE $dbEgpSQL;" >> $logsINST 2>&1
+                    
+                    # Предоставление привилегий пользователю на базу данных
+                    mysql -h localhost -u root -p$safePassSQL -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
+                    
+                    # Применение изменений привилегий
+                    mysql -h localhost -u root -p$safePassSQL -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
@@ -326,10 +350,10 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
-phpmyadmin phpmyadmin/mysql/app-pass password 1234567890
-phpmyadmin phpmyadmin/password-confirm password 1234567890
-phpmyadmin phpmyadmin/mysql/admin-pass password 123456789
-phpmyadmin phpmyadmin/app-password-confirm password 123456789
+phpmyadmin phpmyadmin/mysql/app-pass password $safePassPMA
+phpmyadmin phpmyadmin/password-confirm password $safePassPMA
+phpmyadmin phpmyadmin/mysql/admin-pass password $safePassSQL
+phpmyadmin phpmyadmin/app-password-confirm password $safePassSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
@@ -443,7 +467,12 @@ EOF
                     sudo rsync -av /tmp/enginegp/EngineGP-*/. /var/www/enginegp/ >> $logsINST 2>&1
                     sudo rm /tmp/enginegp/enginegp.zip >> $logsINST 2>&1
                     sudo rm -r /tmp/enginegp/EngineGP-* >> $logsINST 2>&1
-
+                    sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
+                    sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/SQLPASS/$safePassEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+                    mysql -h localhost -u $usrEgpSQL -p$safePassEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     # Генерация и хэширование пароля
                     #saltEGP=$(pwgen -cnys -1 16) # Необходимо записывать в system.php и acpsystem.php
                     #passEGP=$(pwgen -cnys -1 16)
@@ -479,6 +508,12 @@ EOF
                 # Сообщение о завершении установки
                 echo "===================================" >> $logsINST 2>&1
                 echo "Установка завершена!" | tee -a $logsINST
+                echo "Ссылка на сайт: http://$sysIP/" | tee -a $saveDIR
+                echo "Пользователь: root" | tee -a $saveDIR
+                echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
+                echo "Пароль MySQL от $usrEgpSQL: $safePassEgpSQL" | tee -a $saveDIR
+                echo "Пароль MySQL от root: $safePassSQL" | tee -a $saveDIR
+                echo "Пароль MySQL от phpmyadmin: $safePassPMA" | tee -a $saveDIR
                 echo "===================================" >> $logsINST 2>&1
                 read -p "Нажмите Enter для завершения..."
                 continue
