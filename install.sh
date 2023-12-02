@@ -814,10 +814,56 @@ EOF
                     # Add code for installing MTA game here
                     ;;
                 4)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/csgo /path/update/csgo /path/maps/csgo /servers/csgo >> $logsINST 2>&1
+                    echo "Меню установки Counter-Strike: GO"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " csgo_choice
+
+                    case $csgo_choice in
+                        1)
+                            mkdir -p /path/csgo/steam 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/csgo/steam +app_update 740 validate +quit 2>&1 | tee -a ${logsINST}
+                            csgo_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 5)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/cs2 /path/update/cs2 /path/maps/cs2 /servers/cs2 >> $logsINST 2>&1
+                    echo "Меню установки Counter-Strike: 2"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " cs2_choice
+
+                    case $cs2_choice in
+                        1)
+                            mkdir -p /path/cs2/steam 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/cs2/steam +app_update 730 validate +quit 2>&1 | tee -a ${logsINST}
+                            cs2_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 6)
                     # Add code for installing MTA game here
