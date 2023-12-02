@@ -159,8 +159,8 @@ while true; do
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
-                pkgsLNAMP=(apache2 php php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl libapache2-mod-php libapache2-mod-fcgid nginx)
-                pkgsEGP=(ufw memcached cron php$verPHP php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-memcached php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml libapache2-mod-php$verPHP)
+                pkgsLNAMP=(apache2 php php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl libapache2-mod-fcgid nginx)
+                pkgsEGP=(ufw memcached cron php$verPHP php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-memcached php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml)
 
                 # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
@@ -197,16 +197,13 @@ while true; do
                 fi
 
                 # Генерирование паролей и имён
-                passSQL=$(pwgen -cnys -1 16)
-                safePassSQL=$(printf '%s\n' "$passSQL" | sed -e 's/[\&/]/\\&/g')
-                passPMA=$(pwgen -cnys -1 16)
-                safePassPMA=$(printf '%s\n' "$passPMA" | sed -e 's/[\&/]/\\&/g')
-                usrEgpSQL="enginegp_$(pwgen -1 8)"
+                passSQL=$(pwgen -cns -1 16)
+                passPMA=$(pwgen -cns -1 16)
+                usrEgpSQL="enginegp_$(pwgen -cns -1 8)"
                 dbEgpSQL="enginegp_$(pwgen -1 8)"
-                passEgpSQL=$(pwgen -cnys -1 16)
-                safePassEgpSQL=$(printf '%s\n' "$passEgpSQL" | sed -e 's/[\&/]/\\&/g')
+                passEgpSQL=$(pwgen -cns -1 16)
                 usrEgpPASS=$(pwgen -cns -1 16)
-                usrEgpHASH=$(echo -n "$usrEgpPASS" | md5sum | sed 's/ -//')
+                usrEgpHASH=$(echo -n "$usrEgpPASS" | sed 's/-//' | tr -d '[:space:]')
 
                 # Конфигурация apache для EngineGP
                 apache_enginegp="<VirtualHost *:8080>
@@ -288,23 +285,23 @@ EOF
                     sudo apt-get update >> $logsINST 2>&1
                     sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $safePassSQL
-mysql-community-server mysql-community-server/re-root-pass password $safePassSQL
+mysql-community-server mysql-community-server/root-pass password $passSQL
+mysql-community-server mysql-community-server/re-root-pass password $passSQL
 mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
 
                     # Создание пользователя
-                    mysql -h localhost -u root -p$safePassSQL -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$safePassEgpSQL';" >> $logsINST 2>&1
+                    mysql -u root -p$passSQL -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
 
                     # Создание базы данных
-                    mysql -h localhost -u root -p$safePassSQL -e "CREATE DATABASE $dbEgpSQL;" >> $logsINST 2>&1
+                    mysql -u root -p$passSQL -e "CREATE DATABASE $dbEgpSQL;" >> $logsINST 2>&1
                     
                     # Предоставление привилегий пользователю на базу данных
-                    mysql -h localhost -u root -p$safePassSQL -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
+                    mysql -u root -p$passSQL -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
                     
                     # Применение изменений привилегий
-                    mysql -h localhost -u root -p$safePassSQL -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
+                    mysql -u root -p$passSQL -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
@@ -350,10 +347,10 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
-phpmyadmin phpmyadmin/mysql/app-pass password $safePassPMA
-phpmyadmin phpmyadmin/password-confirm password $safePassPMA
-phpmyadmin phpmyadmin/mysql/admin-pass password $safePassSQL
-phpmyadmin phpmyadmin/app-password-confirm password $safePassSQL
+phpmyadmin phpmyadmin/mysql/app-pass password $passPMA
+phpmyadmin phpmyadmin/password-confirm password $passPMA
+phpmyadmin phpmyadmin/mysql/admin-pass password $passSQL
+phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
@@ -469,15 +466,10 @@ EOF
                     sudo rm -r /tmp/enginegp/EngineGP-* >> $logsINST 2>&1
                     sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
                     sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/SQLPASS/$safePassEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/SQLPASS/$passEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
                     sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                    mysql -h localhost -u $usrEgpSQL -p$safePassEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                    # Генерация и хэширование пароля
-                    #saltEGP=$(pwgen -cnys -1 16) # Необходимо записывать в system.php и acpsystem.php
-                    #passEGP=$(pwgen -cnys -1 16)
-                    #hashedPassEGP=$(echo -n "$saltEGP$passEGP" | sha512sum)
-                    #hashedPassEGP=${hashedPassEGP%% *}
+                    mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
@@ -511,9 +503,10 @@ EOF
                 echo "Ссылка на сайт: http://$sysIP/" | tee -a $saveDIR
                 echo "Пользователь: root" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
-                echo "Пароль MySQL от $usrEgpSQL: $safePassEgpSQL" | tee -a $saveDIR
-                echo "Пароль MySQL от root: $safePassSQL" | tee -a $saveDIR
-                echo "Пароль MySQL от phpmyadmin: $safePassPMA" | tee -a $saveDIR
+                echo "Таблица EngineGP: $dbEgpSQL" | tee -a $saveDIR
+                echo "Пароль MySQL от $usrEgpSQL: $passEgpSQL" | tee -a $saveDIR
+                echo "Пароль MySQL от root: $passSQL" | tee -a $saveDIR
+                echo "Пароль MySQL от phpmyadmin: $passPMA" | tee -a $saveDIR
                 echo "===================================" >> $logsINST 2>&1
                 read -p "Нажмите Enter для завершения..."
                 continue
@@ -529,9 +522,8 @@ EOF
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 pkgsLOC=(lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline5 lib32gcc1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
-                passMySQL=$(pwgen -cnys -1 16)
-                safePassMySQL=$(printf '%s\n' "$passMySQL" | sed -e 's/[\&/]/\\&/g')
-                passProFTPD=$(pwgen -cnys -1 16)
+                passMySQL=$(pwgen -cns -1 16)
+                passProFTPD=$(pwgen -cns -1 16)
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -562,8 +554,8 @@ EOF
                     sudo apt-get update >> $logsINST 2>&1
                     sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $safePassMySQL
-mysql-community-server mysql-community-server/re-root-pass password $safePassMySQL
+mysql-community-server mysql-community-server/root-pass password $passMySQL
+mysql-community-server mysql-community-server/re-root-pass password $passMySQL
 mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
@@ -600,10 +592,10 @@ EOF
                     curl -o /etc/proftpd/proftpd.conf $resURL/Components/ProFTPD/proftpd >> $logsINST 2>&1
                     curl -o /etc/proftpd/proftpd_modules.conf $resURL/Components/ProFTPD/proftpd_modules >> $logsINST 2>&1
                     curl -o /etc/proftpd/sql.conf $resURL/Components/ProFTPD/proftpd_sql >> $logsINST 2>&1
-                    mysql -uroot -p$safePassMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
-                    mysql -uroot -p$safePassMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
-                    mysql -uroot -p$safePassMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
-                    mysql -uroot -p$safePassMySQL ftp < EngineGP-requirements/proftpd/sqldump.sql >> $logsINST 2>&1
+                    mysql -uroot -p$passMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
+                    mysql -uroot -p$passMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
+                    mysql -uroot -p$passMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
+                    mysql -uroot -p$passMySQL ftp < EngineGP-requirements/proftpd/sqldump.sql >> $logsINST 2>&1
                     sed -i 's/passwdfor/'$passProFTPD'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
                     chmod -R 750 /etc/proftpd >> $logsINST 2>&1
                     systemctl restart proftpd >> $logsINST 2>&1
@@ -684,7 +676,7 @@ EOF
                 echo "">>$SAVE
                 echo "Location data:">>$saveDIR
                 echo "SQL_Username: root">>$saveDIR
-                echo "SQL_Password: $safePassMySQL">>$saveDIR
+                echo "SQL_Password: $passMySQL">>$saveDIR
                 echo "SQL_FileTP: ftp">>$saveDIR
                 echo "SQL_Port: 3306">>$saveDIR
                 echo "Password for FTP database: $passProFTPD">>$saveDIR
