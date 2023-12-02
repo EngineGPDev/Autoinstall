@@ -479,9 +479,9 @@ EOF
                     sudo rm /tmp/enginegp/enginegp.zip >> $logsINST 2>&1
                     sudo rm -r /tmp/enginegp/EngineGP-* >> $logsINST 2>&1
                     sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
+                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
                     sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
                     sed -i "s/SQLPASS/$passEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
