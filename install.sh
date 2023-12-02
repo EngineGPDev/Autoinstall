@@ -106,7 +106,7 @@ if [ $# -gt 0 ]; then
 
     # Если версия PHP не выбрана, использовать PHP 7.2 по умолчанию
     if [ -z "$verPHP" ]; then
-        verPHP="7.2"
+        verPHP="7.4"
     fi
 
     # Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
@@ -119,7 +119,7 @@ else
     # Если нет аргументов, задаём по умолчанию
     verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
     filesEGP=$verEGP
-    verPHP="7.2"
+    verPHP="7.4"
     sysIP=$(curl -s ipinfo.io/ip)
 fi
 
@@ -203,7 +203,7 @@ while true; do
                 dbEgpSQL="enginegp_$(pwgen -1 8)"
                 passEgpSQL=$(pwgen -cns -1 16)
                 usrEgpPASS=$(pwgen -cns -1 16)
-                usrEgpHASH=$(echo -n "$usrEgpPASS" | sed 's/-//' | tr -d '[:space:]')
+                usrEgpHASH=$(echo -n "$usrEgpPASS" | md5sum | sed 's/-//' | tr -d '[:space:]')
 
                 # Конфигурация apache для EngineGP
                 apache_enginegp="<VirtualHost *:8080>
@@ -253,20 +253,30 @@ while true; do
     location ~ /\.ht {
         deny all;
     }
+}"
+                # Конфигурация nginx для phpMyAdmin
+                nginx_phpmyadmin="server {
+    listen 9090;
+    server_name $sysIP;
+    
+    root /usr/share;
 
     location /phpmyadmin {
-        root /usr/share/;
-        index index.php;
+        index index.php index.html index.htm;
+        try_files \$uri \$uri/ /phpmyadmin/index.php;
 
-       location ~ ^/phpmyadmin/(.+\.php)$ {
-           try_files \$uri =404;
-           root /usr/share/;
-           proxy_pass http://$sysIP:8080;
-       }
+        location ~ ^/phpmyadmin/(.+\.php)$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
+        }
 
-       location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
-           root /usr/share/;
-       }
+        location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+            root /usr/share;
+        }
+    }
+
+    location ~ /\.ht {
+        deny all;
     }
 }"
 
@@ -354,8 +364,12 @@ phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
-                    sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
-                    sudo a2enconf phpmyadmin.conf >> $logsINST 2>&1
+                    echo -e "$nginx_phpmyadmin" | sudo tee /etc/nginx/sites-available/00-phpmyadmin >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/00-phpmyadmin /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+
+                    # Проводим тестирование и запускаем конфиг NGINX
+                    sudo nginx -t >> $logsINST 2>&1
+                    sudo systemctl restart nginx >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "phpmyadmin уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
@@ -436,8 +450,8 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     # Удаляем дефолтный и создаём конфиг EngineGP
                     sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
-                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/enginegp >> $logsINST 2>&1
-                    sudo ln -s /etc/nginx/sites-available/enginegp /etc/nginx/sites-enabled/enginegp >> $logsINST 2>&1
+                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/01-enginegp >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/01-enginegp /etc/nginx/sites-enabled/ >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
@@ -498,16 +512,17 @@ EOF
                 sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
 
                 # Сообщение о завершении установки
-                echo "===================================" >> $logsINST 2>&1
+                echo "===================================" | tee -a $logsINST
                 echo "Установка завершена!" | tee -a $logsINST
-                echo "Ссылка на сайт: http://$sysIP/" | tee -a $saveDIR
+                echo "Ссылка на EngineGP: http://$sysIP/" | tee -a $saveDIR
                 echo "Пользователь: root" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
+                echo "Ссылка на phpmyadmin: http://$sysIP:9090/phpmyadmin/" | tee -a $saveDIR
                 echo "Таблица EngineGP: $dbEgpSQL" | tee -a $saveDIR
                 echo "Пароль MySQL от $usrEgpSQL: $passEgpSQL" | tee -a $saveDIR
                 echo "Пароль MySQL от root: $passSQL" | tee -a $saveDIR
                 echo "Пароль MySQL от phpmyadmin: $passPMA" | tee -a $saveDIR
-                echo "===================================" >> $logsINST 2>&1
+                echo "===================================" | tee -a $logsINST
                 read -p "Нажмите Enter для завершения..."
                 continue
             else
