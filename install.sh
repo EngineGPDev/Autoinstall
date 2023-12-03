@@ -536,7 +536,7 @@ EOF
             clear
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                pkgsLOC=(lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline5 lib32gcc1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
+                pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
                 passMySQL=$(pwgen -cns -1 16)
                 passProFTPD=$(pwgen -cns -1 16)
 
