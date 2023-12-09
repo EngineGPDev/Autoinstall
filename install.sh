@@ -38,7 +38,7 @@ for package in "${pkgsREQ[@]}"; do
 done
 
 # Массив с поддерживаемыми версиями операционной системы
-suppOS=("Debian 10" "Debian 11" "Ubuntu 22.04")
+suppOS=("Debian 11" "Debian 12" "Ubuntu 22.04")
 
 # Получаем текущую версию операционной системы
 disOS=`lsb_release -si`
@@ -290,10 +290,10 @@ mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
                     sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo rm mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password $passSQL
 mysql-community-server mysql-community-server/re-root-pass password $passSQL
@@ -564,10 +564,10 @@ mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
                     sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.26-1_all.deb >> $logsINST 2>&1
+                    sudo rm mysql-apt-config_0.8.28-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password $passMySQL
 mysql-community-server mysql-community-server/re-root-pass password $passMySQL
@@ -603,15 +603,15 @@ EOF
                     echo "proftpd не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     echo "proftpd shared/proftpd/inetd_or_standalone select standalone" | debconf-set-selections
-                    sudo apt-get install -y proftpd proftpd-mod-mysql >> $logsINST 2>&1
+                    sudo apt-get install -y proftpd-basic proftpd-mod-mysql >> $logsINST 2>&1
                     curl -o /etc/proftpd/proftpd.conf $resURL/Components/ProFTPD/proftpd >> $logsINST 2>&1
-                    curl -o /etc/proftpd/proftpd_modules.conf $resURL/Components/ProFTPD/proftpd_modules >> $logsINST 2>&1
+                    curl -o /etc/proftpd/modules.conf $resURL/Components/ProFTPD/proftpd_modules >> $logsINST 2>&1
                     curl -o /etc/proftpd/sql.conf $resURL/Components/ProFTPD/proftpd_sql >> $logsINST 2>&1
-                    mysql -uroot -p$passMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
-                    mysql -uroot -p$passMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
-                    mysql -uroot -p$passMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
-                    mysql -uroot -p$passMySQL ftp < EngineGP-requirements/proftpd/sqldump.sql >> $logsINST 2>&1
-                    sed -i 's/passwdfor/'$passProFTPD'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
+                    mysql -u root -p$passMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
+                    mysql -u root -p$passMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
+                    mysql -u root -p$passMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
+                    curl -sSL $resURL/Components/ProFTPD/sqldump.sql | mysql -u root -p$passMySQL ftp >> $logsINST 2>&1
+                    sed -i 's/passwdfor/'$passMySQL'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
                     chmod -R 750 /etc/proftpd >> $logsINST 2>&1
                     systemctl restart proftpd >> $logsINST 2>&1
                 else
