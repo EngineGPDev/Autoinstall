@@ -196,6 +196,60 @@ while true; do
                     defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
                 fi
 
+                # Проверяем наличие репозитория apache2 sury
+                if [[ " ${disOS} " =~ " Debian " ]]; then
+                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий apache2
+                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
+
+                        # Обновление таблиц
+                        apt-get -y update >> $logsINST 2>&1
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                    fi
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Добавляем репозиторий apache2
+                    sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
+
+                    # Обновление таблиц
+                    apt-get -y update >> $logsINST 2>&1
+                fi
+
+                # Проверяем наличие репозитория nginx sury
+                if [[ " ${disOS} " =~ " Debian " ]]; then
+                    if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий nginx
+                        sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
+
+                        # Обновление таблиц
+                        apt-get -y update >> $logsINST 2>&1
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx обнаружен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                    fi
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Добавляем репозиторий nginx
+                    sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
+
+                    # Обновление таблиц
+                    apt-get -y update >> $logsINST 2>&1
+                fi
+
                 # Генерирование паролей и имён
                 passSQL=$(pwgen -cns -1 16)
                 passPMA=$(pwgen -cns -1 16)
@@ -536,6 +590,60 @@ EOF
             clear
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
+                # Проверяем наличие репозитория apache2 sury
+                if [[ " ${disOS} " =~ " Debian " ]]; then
+                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий apache2
+                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
+
+                        # Обновление таблиц
+                        apt-get -y update >> $logsINST 2>&1
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                    fi
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Добавляем репозиторий apache2
+                    sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
+
+                    # Обновление таблиц
+                    apt-get -y update >> $logsINST 2>&1
+                fi
+
+                # Проверяем наличие репозитория nginx sury
+                if [[ " ${disOS} " =~ " Debian " ]]; then
+                    if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий nginx
+                        sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
+
+                        # Обновление таблиц
+                        apt-get -y update >> $logsINST 2>&1
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx обнаружен." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                    fi
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Добавляем репозиторий nginx
+                    sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
+
+                    # Обновление таблиц
+                    apt-get -y update >> $logsINST 2>&1
+                fi
+
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
                 passMySQL=$(pwgen -cns -1 16)
                 passProFTPD=$(pwgen -cns -1 16)
