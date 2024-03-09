@@ -28,7 +28,7 @@ saveDIR="/root/enginegp.cfg"
 sysUpdate
 
 # Установка начальных пакетов.
-pkgsREQ=(sudo curl lsb-release wget gnupg rsync pwgen zip unzip bc tar software-properties-common)
+pkgsREQ=(sudo curl lsb-release wget gnupg pwgen zip unzip bc tar software-properties-common git)
 
 # Цикл установки пакетов
 for package in "${pkgsREQ[@]}"; do
@@ -466,10 +466,46 @@ EOF
                         echo "===================================" >> $logsINST 2>&1
                     fi
                 fi
-                  
-                # Создание каталогов
+
+                # Установка и настрока composer
+                if [ ! -f "/usr/local/bin/composer" ]; then
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "composer не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    curl -sSL https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer >> $logsINST 2>&1
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "composer уже установлен в системе." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                fi
+
+                # Установка EngineGP
+                if [ ! -d "/var/www/enginegp" ]; then
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    sudo git clone https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
+                    sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp >> $logsINST 2>&1
+                    sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
+                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/SQLPASS/$passEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+                    mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
+                fi
+
+                # Выставляем права на каталог
+                sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
+                sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
+
+                # Создание каталога для логов apache и nginx
                 sudo mkdir /var/log/enginegp >> $logsINST 2>&1
-                sudo mkdir /var/www/enginegp >> $logsINST 2>&1
 
                 # Настраиваем apache
                 if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
@@ -524,43 +560,6 @@ EOF
                      read -p "Нажмите Enter для завершения..."
                      continue
                 fi
-
-                # Установка и настрока composer
-                if [ ! -f "/usr/local/bin/composer" ]; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "composer не установлен. Выполняется установка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    curl -sSL https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "composer уже установлен в системе." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                fi
-
-                # Установка EngineGP
-                if [ "$(ls -A /var/www/enginegp)" ]; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    sudo git clone https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
-                    sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp >> $logsINST 2>&1
-                    sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
-                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/SQLPASS/$passEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                    mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
-                fi
-
-                # Выставляем права на каталог
-                sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
-                sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
 
                 # Сообщение о завершении установки
                 echo "===================================" | tee -a $logsINST
