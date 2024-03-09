@@ -923,10 +923,60 @@ EOF
                     esac
                     ;;
                 2)
-                    # Add code for installing SAMP game here
+                    clear
+                    mkdir -p /path/cssold /path/update/cssold /path/maps/cssold /servers/cssold >> $logsINST 2>&1
+                    echo "Меню установки Counter-Strike: Source v34"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " css34_choice
+
+                    case $css34_choice in
+                        1)
+                            mkdir -p /path/cssold/steam 2>&1 | tee -a ${logsINST}
+                            sudo curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a ${logsINST}
+                            sudo unzip /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a ${logsINST}
+                            sudo rm /path/cssold/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
+                            css34_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 3)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/css /path/update/css /path/maps/css /servers/css >> $logsINST 2>&1
+                    echo "Меню установки Counter-Strike: Source"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " css_choice
+
+                    case $css_choice in
+                        1)
+                            mkdir -p /path/css/steam 2>&1 | tee -a ${logsINST}
+                            sudo curl -SL -o /path/css/steam/steam.zip $gamesURL/css/steam.zip 2>&1 | tee -a ${logsINST}
+                            sudo unzip /path/css/steam/steam.zip -d /path/css/steam/ 2>&1 | tee -a ${logsINST}
+                            sudo rm /path/css/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
+                            css_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 4)
                     clear
