@@ -1,4 +1,11 @@
 #!/bin/bash
+######### Copyright #########
+# Copyright (c) 2023 Solovev Sergei <inbox@seansolovev.ru>
+# Copyright (c) 2024 Сontributors <https://github.com/EngineGPDev/Autoinstall>
+# MIT License: https://github.com/EngineGPDev/Autoinstall/blob/main/LICENSE
+# When distributing, it is necessary to attach the LICENSE file or this block.
+######### Copyright #########
+
 # Обновление таблиц и системы
 sysUpdate (){
     echo "===================================" >> $logsINST 2>&1
