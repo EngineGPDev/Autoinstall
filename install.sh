@@ -538,7 +538,7 @@ EOF
                 fi
 
                 # Установка EngineGP
-                if [ ! -d "/var/www/enginegp" ]; then
+                if [ "$(ls -A /var/www/enginegp)" ]; then
                     echo "===================================" >> $logsINST 2>&1
                     echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
