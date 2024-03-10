@@ -168,8 +168,8 @@ while true; do
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
-                pkgsLNAMP=(apache2 php php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl libapache2-mod-fcgid nginx)
-                pkgsEGP=(ufw memcached cron php$verPHP php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-memcached php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml)
+                pkgsLNAMP=(php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl apache2 libapache2-mod-fcgid nginx)
+                pkgsEGP=(ufw memcached cron php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml)
 
                 # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
@@ -279,12 +279,10 @@ while true; do
      <Directory /var/www/enginegp>
         Options Indexes FollowSymLinks MultiViews
         AllowOverride All
-        Order allow,deny
-        allow from all
+        Require all granted
      </Directory>
 
     <FilesMatch \.php$>
-      # For Apache version 2.4.10 and above, use SetHandler to run PHP as a fastCGI process server
       SetHandler "proxy:unix:/run/php/php$verPHP-fpm.sock\|fcgi://localhost"
     </FilesMatch>
 </VirtualHost>
