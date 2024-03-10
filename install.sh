@@ -819,6 +819,8 @@ EOF
                 echo "SQL_FileTP: ftp">>$saveDIR
                 echo "SQL_Port: 3306">>$saveDIR
                 echo "Password for FTP database: $passProFTPD">>$saveDIR
+                read -p "Нажмите Enter для завершения..."
+                continue
             else
                 echo "===================================" >> $logsINST 2>&1
                 echo "Вы используете неподдерживаемую версию Linux" | tee -a $logsINST
