@@ -168,7 +168,7 @@ while true; do
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
-                pkgsLNAMP=(php-fpm php-ctype php-json php-mbstring php-zip php-gd php-xml php-curl apache2 libapache2-mod-fcgid nginx)
+                pkgsLNAMP=(php-fpm php-json php-mbstring php-zip php-gd php-xml php-curl apache2 libapache2-mod-fcgid nginx)
                 pkgsEGP=(ufw memcached cron php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml)
 
                 # Установка стека LNAMP + phpMyAdmin
