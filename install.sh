@@ -812,7 +812,7 @@ EOF
                     read -p "Нажмите Enter для завершения..."
                     continue
                 fi
-                echo "">>$SAVE
+                echo "">>$saveDIR
                 echo "Location data:">>$saveDIR
                 echo "SQL_Username: root">>$saveDIR
                 echo "SQL_Password: $passMySQL">>$saveDIR
