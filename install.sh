@@ -293,6 +293,12 @@ while true; do
     </FilesMatch>
 </VirtualHost>
 "
+                # Конфигурация apache для EngineGP
+                apache_remoteip="RemoteIPHeader X-Real-IP
+RemoteIPHeader X-Client-IP
+RemoteIPHeader X-Forwarded-For
+RemoteIPInternalProxy 127.0.0.1
+"
 
                 # Конфигурация nginx для EngineGP
                 nginx_enginegp="server {
@@ -300,7 +306,7 @@ while true; do
     server_name $sysIP;
 
     location / {
-        proxy_pass http://$sysIP:8080;
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -529,8 +535,12 @@ EOF
                     # Создаем виртуальный хостинг для EngineGP
                     echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
 
+                    # Создаем конфиг remoteip
+                    echo -e "$apache_remoteip" | sudo tee /etc/apache2/conf-available/remoteip.conf >> $logsINST 2>&1
+
                     # Включаем модули Apache
-                    sudo a2enmod actions fcgid alias proxy_fcgi rewrite >> $logsINST 2>&1
+                    sudo a2enmod actions fcgid alias proxy_fcgi rewrite remoteip >> $logsINST 2>&1
+                    sudo a2enconf remoteip >> $logsINST 2>&1
                     sudo systemctl restart apache2 >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг Apache
