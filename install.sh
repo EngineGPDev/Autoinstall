@@ -611,8 +611,9 @@ EOF
                         # Добавляем репозиторий apache2
                         sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
 
-                        # Обновление таблиц
+                        # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
                     else
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
@@ -625,8 +626,9 @@ EOF
                     # Добавляем репозиторий apache2
                     sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
 
-                    # Обновление таблиц
+                    # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
+                    apt-get -y upgrade >> $logsINST 2>&1
                 fi
 
                 # Проверяем наличие репозитория nginx sury
@@ -638,8 +640,9 @@ EOF
                         # Добавляем репозиторий nginx
                         sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
 
-                        # Обновление таблиц
+                        # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
                     else
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx обнаружен." | tee -a $logsINST
@@ -652,8 +655,9 @@ EOF
                     # Добавляем репозиторий nginx
                     sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
-                    # Обновление таблиц
+                    # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
+                    apt-get -y upgrade >> $logsINST 2>&1
                 fi
 
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
