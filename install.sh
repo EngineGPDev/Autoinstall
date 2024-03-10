@@ -181,8 +181,9 @@ while true; do
                         # Добавляем репозиторий php
                         sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> $logsINST 2>&1
 
-                        # Обновление таблиц
+                        # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
 
                         # Определяем версию php по умолчанию
                         defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -198,8 +199,9 @@ while true; do
                     # Добавляем репозиторий php
                     sudo add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
 
-                    # Обновление таблиц
+                    # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
+                    apt-get -y upgrade >> $logsINST 2>&1
 
                     # Определяем версию php по умолчанию
                     defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -214,8 +216,9 @@ while true; do
                         # Добавляем репозиторий apache2
                         sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
 
-                        # Обновление таблиц
+                        # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
                     else
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
@@ -228,8 +231,9 @@ while true; do
                     # Добавляем репозиторий apache2
                     sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
 
-                    # Обновление таблиц
+                    # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
+                    apt-get -y upgrade >> $logsINST 2>&1
                 fi
 
                 # Проверяем наличие репозитория nginx sury
@@ -241,8 +245,9 @@ while true; do
                         # Добавляем репозиторий nginx
                         sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
 
-                        # Обновление таблиц
+                        # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
                     else
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx обнаружен." | tee -a $logsINST
@@ -255,8 +260,9 @@ while true; do
                     # Добавляем репозиторий nginx
                     sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
-                    # Обновление таблиц
+                    # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
+                    apt-get -y upgrade >> $logsINST 2>&1
                 fi
 
                 # Генерирование паролей и имён
