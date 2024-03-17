@@ -326,6 +326,10 @@ RemoteIPInternalProxy 127.0.0.1
     location ~ /\.ht {
         deny all;
     }
+
+    location ~ /\.en {
+        deny all;
+    }
 }"
                 # Конфигурация nginx для phpMyAdmin
                 nginx_phpmyadmin="server {
@@ -496,12 +500,13 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    sudo git clone https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
+                    sudo git clone --branch develop https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
                     sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp >> $logsINST 2>&1
-                    sed -i "s/IPADDR/$sysIP/g" /var/www/enginegp/system/data/config.php >> $logsINST 2>&1
-                    sed -i "s/enginegp/$dbEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/root/$usrEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
-                    sed -i "s/SQLPASS/$passEgpSQL/g" /var/www/enginegp/system/data/mysql.php >> $logsINST 2>&1
+                    sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env >> $logsINST 2>&1
+                    sed -i "s/example.com/$sysIP/g" /var/www/enginegp/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_db/$dbEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
