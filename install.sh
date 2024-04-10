@@ -60,31 +60,18 @@ resURL="https://resources.enginegp.com"
 # Проверка аргументов командной строки
 if [ $# -gt 0 ]; then
     # Переменные для хранения
-    verEGP=""
     verPHP=""
-    verSQL=""
     sysIP=""
+    gitEGP=""
 
     # Перебор всех аргументов
     while [[ $# -gt 0 ]]; do
         key="$1"
 
         case $key in
-            --release)
-                # Если передан аргумент --release, сохранить указанную версию EngineGP
-                verEGP="$2"
-                shift # Пропустить значение версии
-                shift # Пропустить аргумент --release
-                ;;
             --php)
                 # Если передан аргумент --php, сохранить указанную версию PHP
                 verPHP="$2"
-                shift # Пропустить значение версии
-                shift # Пропустить аргумент --php
-                ;;
-            --sql)
-                # Если передан аргумент --sql, сохранить указанную версию PHP
-                verSQL="$2"
                 shift # Пропустить значение версии
                 shift # Пропустить аргумент --php
                 ;;
@@ -94,26 +81,25 @@ if [ $# -gt 0 ]; then
                 shift # Пропустить значение IP-адреса
                 shift # Пропустить аргумент --ip
                 ;;
+            --branch)
+                # Если передан аргумент --ip, сохранить указанный IP-адрес
+                gitEGP="$2"
+                shift # Пропустить значение ветки
+                shift # Пропустить аргумент --branch
+                ;;
             *)
                 # Неизвестный аргумент, вывести справку и выйти
                 clear
-                echo "Использование: ./install.sh [--release версия] [--php версия] [--sql версия] [--ip IP-адрес]"
-                echo "  --release версия: установить указанную версию EngineGP. Формат должен быть: 3630"
-                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 7.1"
-                echo "  --sql версия: установить указанную базу данный. Формат должен быть: mysql или mariadb"
+                echo "Использование: ./install.sh --php 7.4 --ip 192.168.1.1 --branch main"
+                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 7.4"
                 echo "  --ip IP-адрес: использовать указанный IP-адрес. Формат должен быть: 192.168.1.1"
+                echo "  --branch ветка: использовать указаную ветку GIT. Формат должен быть: main"
                 exit 1
                 ;;
         esac
     done
 
-    # Если версия EngineGP не выбрана, использовать последнюю стабильную версию
-    if [ -z "$verEGP" ]; then
-        LATEST_URL="$resURL/latest"
-        verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
-    fi
-
-    # Если версия PHP не выбрана, использовать PHP 7.2 по умолчанию
+    # Если версия PHP не выбрана, использовать PHP 7.4 по умолчанию
     if [ -z "$verPHP" ]; then
         verPHP="7.4"
     fi
@@ -122,14 +108,16 @@ if [ $# -gt 0 ]; then
     if [ -z "$sysIP" ]; then
         sysIP=$(curl -s ipinfo.io/ip)
     fi
+
+    # Если ветка не указана, использовать main
+    if [ -z "$gitEGP" ]; then
+        gitEGP="main"
+    fi
 else
-    # Получаем последнюю версию EngineGP из файла на сайте
-    LATEST_URL="$resURL/latest"
     # Если нет аргументов, задаём по умолчанию
-    verEGP=$(curl -s "$LATEST_URL" | grep -o 'Current: [0-9.]*' | awk '{print $2}')
-    filesEGP=$verEGP
     verPHP="7.4"
     sysIP=$(curl -s ipinfo.io/ip)
+    gitEGP="main"
 fi
 
 # Проверяем, является ли полученный IP-адрес действительным IPv4 адресом
@@ -140,15 +128,6 @@ else
     echo "Не удалось получить внешний IP-адрес"
     echo "Используй: ./install.sh [--ip IP-адрес]"
     exit
-fi
-
-# Проверяем условия и записываем версию в переменную
-if [[ "$verEGP" == 3* ]]; then
-    resEGP="EngineGPv3"
-elif [[ "$verEGP" == 4* ]]; then
-    resEGP="EngineGPv4"
-else
-    resEGP="EngineGPv4"
 fi
 
 while true; do
@@ -500,7 +479,7 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    sudo git clone --branch develop https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
+                    sudo git clone --branch $gitEGP https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
                     sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp >> $logsINST 2>&1
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/example.com/$sysIP/g" /var/www/enginegp/.env >> $logsINST 2>&1
@@ -1075,10 +1054,10 @@ EOF
         4)
             clear
             echo "===================================" >> $logsINST 2>&1
-            echo "Последняя версия EngineGP: $verEGP" | tee -a $logsINST
             echo "Текущая версия Linux: $currOS" | tee -a $logsINST
             echo "Внешний IP-адрес: $sysIP" | tee -a $logsINST
             echo "Версия php: $verPHP" | tee -a $logsINST
+            echo "Ветка GIT: $gitEGP" | tee -a $logsINST
             echo "===================================" >> $logsINST 2>&1
             read -p "Нажмите Enter для выхода в главное меню..."
             continue
