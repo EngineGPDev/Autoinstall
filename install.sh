@@ -1,11 +1,14 @@
 #!/bin/bash
 ##
-# @author Solovev Sergei
+# EngineGP   (https://enginegp.ru or https://enginegp.com)
 #
-# @link https://seansolovev.ru
-# @link https://github.com/EngineGPDev/Autoinstall
+# @copyright Copyright (c) 2023-present Solovev Sergei <inbox@seansolovev.ru>
 # 
-# @license MIT License
+# @link      https://github.com/EngineGPDev/Autoinstall for the canonical source repository
+# @link      https://gitforge.ru/EngineGP/Autoinstall for the canonical source repository
+#
+# @license   https://github.com/EngineGPDev/Autoinstall/blob/main/LICENSE MIT License
+# @license   https://gitforge.ru/EngineGP/Autoinstall/src/branch/main/LICENSE MIT License
 ##
 
 # Обновление таблиц и системы
