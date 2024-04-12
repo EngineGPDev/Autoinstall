@@ -525,7 +525,7 @@ EOF
 
                     # Изменяем порт, на котором сидит Apache
                     sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> $logsINST 2>&1
-                    echo "Listen 81" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
+                    echo "Listen 127.0.0.1:81" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
 
                     # Создаем виртуальный хостинг для EngineGP
                     echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
