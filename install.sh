@@ -256,10 +256,10 @@ while true; do
                 usrEgpPASS=$(pwgen -cns -1 16)
 
                 # Конфигурация apache для EngineGP
-                apache_enginegp="<VirtualHost *:8080>
+                apache_enginegp="<VirtualHost 127.0.0.1:81>
      ServerName $sysIP
      DocumentRoot /var/www/enginegp
-     DirectoryIndex index.php index.html
+     DirectoryIndex index.php
      ErrorLog \${APACHE_LOG_DIR}/enginegp.log
      CustomLog \${APACHE_LOG_DIR}/enginegp.log combined
 
@@ -287,7 +287,7 @@ RemoteIPInternalProxy 127.0.0.1
     server_name $sysIP;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:81;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -320,7 +320,7 @@ RemoteIPInternalProxy 127.0.0.1
     root /usr/share;
 
     location /phpmyadmin {
-        index index.php index.html index.htm;
+        index index.php;
         try_files \$uri \$uri/ /phpmyadmin/index.php;
 
         location ~ ^/phpmyadmin/(.+\.php)$ {
@@ -525,7 +525,7 @@ EOF
 
                     # Изменяем порт, на котором сидит Apache
                     sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> $logsINST 2>&1
-                    echo "Listen 8080" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
+                    echo "Listen 81" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
 
                     # Создаем виртуальный хостинг для EngineGP
                     echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
@@ -574,15 +574,20 @@ EOF
 
                 # Сообщение о завершении установки
                 echo "===================================" | tee -a $logsINST
-                echo "Установка завершена!" | tee -a $logsINST
+                echo "Установка завершена!" | tee -a $saveDIR
                 echo "Ссылка на EngineGP: http://$sysIP/" | tee -a $saveDIR
                 echo "Пользователь: root" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
-                echo "Ссылка на phpmyadmin: http://$sysIP:9090/phpmyadmin/" | tee -a $saveDIR
-                echo "Таблица EngineGP: $dbEgpSQL" | tee -a $saveDIR
-                echo "Пароль MySQL от $usrEgpSQL: $passEgpSQL" | tee -a $saveDIR
-                echo "Пароль MySQL от root: $passSQL" | tee -a $saveDIR
-                echo "Пароль MySQL от phpmyadmin: $passPMA" | tee -a $saveDIR
+                echo "===================================" | tee -a $logsINST
+                echo "MySQL данные для EngineGP" | tee -a $saveDIR
+                echo "Ссылка на phpMyAdmin: http://$sysIP:9090/" | tee -a $saveDIR
+                echo "База данных: $dbEgpSQL" | tee -a $saveDIR
+                echo "Пользователь: $usrEgpSQL" | tee -a $saveDIR
+                echo "Пароль: $passEgpSQL" | tee -a $saveDIR
+                echo "===================================" | tee -a $logsINST
+                echo "Системные данные MySQL" | tee -a $saveDIR
+                echo "MySQL пароль от root: $passSQL" | tee -a $saveDIR
+                echo "MySQL пароль от phpMyAdmin: $passPMA" | tee -a $saveDIR
                 echo "===================================" | tee -a $logsINST
                 read -p "Нажмите Enter для завершения..."
                 continue
