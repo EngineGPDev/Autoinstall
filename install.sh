@@ -254,7 +254,6 @@ while true; do
                 dbEgpSQL="enginegp_$(pwgen -1 8)"
                 passEgpSQL=$(pwgen -cns -1 16)
                 usrEgpPASS=$(pwgen -cns -1 16)
-                usrEgpHASH=$(echo -n "$usrEgpPASS" | md5sum | sed 's/-//' | tr -d '[:space:]')
 
                 # Конфигурация apache для EngineGP
                 apache_enginegp="<VirtualHost *:8080>
@@ -482,13 +481,22 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "enginegp не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
+
+                    # Клонирование репозитория
                     sudo git clone --branch $gitEGP https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp >> $logsINST 2>&1
+
+                    # Установка зависимостей composer
                     sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp >> $logsINST 2>&1
+
+                    # Хэширование пароля пользователя перед записью в базу данных
+                    usrEgpHASH=$(php$verPHP -r "echo password_hash('$usrEgpPASS', PASSWORD_DEFAULT);") >> $logsINST 2>&1
+
+                    # Настраиваем конфигурацию панели и экспортируем базу данных
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/example.com/$sysIP/g" /var/www/enginegp/.env >> $logsINST 2>&1
-                    sed -i "s/enginegp_db/$dbEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
-                    sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
-                    sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/system/data/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_db/$dbEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
+                    sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$usrEgpHASH/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
