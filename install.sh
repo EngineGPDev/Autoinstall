@@ -784,13 +784,14 @@ EOF
                     read -p "Нажмите Enter для завершения..."
                     continue
                 fi
-                echo "">>$saveDIR
-                echo "Location data:">>$saveDIR
-                echo "SQL_Username: root">>$saveDIR
-                echo "SQL_Password: $passMySQL">>$saveDIR
-                echo "SQL_FileTP: ftp">>$saveDIR
-                echo "SQL_Port: 3306">>$saveDIR
-                echo "Password for FTP database: $passProFTPD">>$saveDIR
+                echo "===================================" | tee -a $saveDIR
+                echo "Данные локации" | tee -a $saveDIR
+                echo "SQL_Username: root" | tee -a $saveDIR
+                echo "SQL_Password: $passMySQL" | tee -a $saveDIR
+                echo "SQL_FileTP: ftp" | tee -a $saveDIR
+                echo "SQL_Port: 3306" | tee -a $saveDIR
+                echo "Password for FTP database: $passProFTPD" | tee -a $saveDIR
+                echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
             else
