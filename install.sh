@@ -42,10 +42,6 @@ for package in "${pkgsREQ[@]}"; do
         echo "$package не установлен. Выполняется установка..."  | tee -a $logsINST
         echo "===================================" >> $logsINST 2>&1
         apt-get install -y "$package" >> $logsINST 2>&1
-    else
-        echo "===================================" >> $logsINST 2>&1
-        echo "$package уже установлен в системе." | tee -a $logsINST
-        echo "===================================" >> $logsINST 2>&1
     fi
 done
 
@@ -169,10 +165,6 @@ while true; do
 
                         # Определяем версию php по умолчанию
                         defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий php обнаружен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -201,10 +193,6 @@ while true; do
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
                         apt-get -y upgrade >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -230,10 +218,6 @@ while true; do
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
                         apt-get -y upgrade >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий nginx обнаружен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -386,10 +370,6 @@ EOF
                         echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         sudo apt-get install -y "$package" >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "$package уже установлен в системе." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 done
 
@@ -401,10 +381,6 @@ EOF
                         echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         apt-get install -y "$package" >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "$package уже установлен в системе." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 done
 
@@ -451,10 +427,6 @@ EOF
                         echo "php$defPHP-fpm не запущен. Выполняется запуск..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         sudo systemctl start php$defPHP-fpm >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "php$defPHP-fpm уже запущен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 fi
 
@@ -465,10 +437,6 @@ EOF
                         echo "php$verPHP-fpm не запущен. Выполняется запуск..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         sudo systemctl start php$verPHP-fpm >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "php$verPHP-fpm уже запущен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 fi
 
@@ -478,10 +446,6 @@ EOF
                     echo "composer не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     curl -sSL https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "composer уже установлен в системе." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
                 fi
 
                 # Установка EngineGP
@@ -581,22 +545,22 @@ EOF
                 fi
 
                 # Сообщение о завершении установки
-                echo "===================================" | tee -a $logsINST
+                echo "===================================" | tee -a $saveDIR
                 echo "Установка завершена!" | tee -a $saveDIR
                 echo "Ссылка на EngineGP: http://$sysIP/" | tee -a $saveDIR
                 echo "Пользователь: root" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
-                echo "===================================" | tee -a $logsINST
+                echo "===================================" | tee -a $saveDIR
                 echo "MySQL данные для EngineGP" | tee -a $saveDIR
                 echo "Ссылка на phpMyAdmin: http://$sysIP:9090/" | tee -a $saveDIR
                 echo "База данных: $dbEgpSQL" | tee -a $saveDIR
                 echo "Пользователь: $usrEgpSQL" | tee -a $saveDIR
                 echo "Пароль: $passEgpSQL" | tee -a $saveDIR
-                echo "===================================" | tee -a $logsINST
+                echo "===================================" | tee -a $saveDIR
                 echo "Системные данные MySQL" | tee -a $saveDIR
                 echo "MySQL пароль от root: $passSQL" | tee -a $saveDIR
                 echo "MySQL пароль от phpMyAdmin: $passPMA" | tee -a $saveDIR
-                echo "===================================" | tee -a $logsINST
+                echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
             else
