@@ -317,19 +317,19 @@ RemoteIPInternalProxy 127.0.0.1
     listen 9090;
     server_name $sysIP;
     
-    root /usr/share;
+    root /usr/share/phpmyadmin;
 
-    location /phpmyadmin {
+    location / {
         index index.php;
-        try_files \$uri \$uri/ /phpmyadmin/index.php;
+        try_files \$uri \$uri/ /index.php;
 
-        location ~ ^/phpmyadmin/(.+\.php)$ {
+        location ~ ^/(.+\.php)$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
         }
 
-        location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
-            root /usr/share;
+        location ~* ^/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+            root /usr/share/phpmyadmin;
         }
     }
 
