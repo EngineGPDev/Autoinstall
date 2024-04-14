@@ -573,6 +573,34 @@ EOF
             ;;
         2)
             clear
+
+            useEngineGP=""
+
+            while true; do
+                echo "Хотите настроить локацию на сервере с EngineGP? (y/n)"
+                read useEngineGP
+
+                case $useEngineGP in
+                    [Yy]*)
+                        echo "Введите пароль root от MySQL:"
+                        read userPassword
+                        passMySQL=$userPassword
+                        break
+                        ;;
+                    [Nn]*)
+                        passMySQL=$(pwgen -cns -1 16)
+                        break
+                        ;;
+                    *)
+                        echo "Пожалуйста, введите 'y' или 'n'."
+                        ;;
+                esac
+            done
+
+            clear
+
+            passProFTPD=$(pwgen -cns -1 16)
+            
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Проверяем наличие репозитория apache2 sury
@@ -587,10 +615,6 @@ EOF
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
                         apt-get -y upgrade >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 обнаружен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -616,10 +640,6 @@ EOF
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
                         apt-get -y upgrade >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий nginx обнаружен." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -634,8 +654,6 @@ EOF
                 fi
 
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
-                passMySQL=$(pwgen -cns -1 16)
-                passProFTPD=$(pwgen -cns -1 16)
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -645,38 +663,36 @@ EOF
 
                     # Обновление таблиц
                     apt-get -y update >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Архитектура i386 уже добавлена." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
                 fi
 
                 # Устанавливаем базу данных
-                if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
+                if [[ "${useEngineGP,,}" == "n" ]]; then
+                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        sudo debconf-set-selections <<EOF
 mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
-                    sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
+                        sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                        sudo apt-get update >> $logsINST 2>&1
+                        sudo rm mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                        sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password $passMySQL
 mysql-community-server mysql-community-server/re-root-pass password $passMySQL
 mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
 EOF
-                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
+                        sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
+                    else
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        read -p "Нажмите Enter для завершения..."
+                        continue
+                    fi
                 fi
 
                 # Цикл установки пакетов
@@ -687,10 +703,6 @@ EOF
                         echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         apt-get install -y "$package" >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "$package уже установлен в системе." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
                     fi
                 done
 
