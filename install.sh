@@ -147,7 +147,7 @@ while true; do
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
                 pkgsLNAMP=(php-fpm php-json php-mbstring php-zip php-gd php-xml php-curl apache2 libapache2-mod-fcgid nginx)
-                pkgsEGP=(ufw memcached screen cron php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 php$verPHP-xml)
+                pkgsEGP=(ufw memcached screen cron php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2)
 
                 # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
