@@ -1,7 +1,7 @@
 <p align="center"><b>Automatic installation for EngineGP</p>
 Supported systems:</br>
-Debian 11, 12</br>
-Ubuntu 22.04</br>
+GNU/Linux: Debian 11, 12</br>
+GNU/Linux: Ubuntu 22.04</br>
 </br>
 Starting the auto installer:</br>
 apt -y install git</br>
