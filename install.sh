@@ -146,10 +146,8 @@ while true; do
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Список пакетов для установки
-                pkgsLNAMP=(php-fpm php-json php-mbstring php-zip php-gd php-xml php-curl apache2 libapache2-mod-fcgid nginx)
-                pkgsEGP=(ufw memcached screen cron php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2)
+                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 apache2 libapache2-mod-fcgid nginx ufw memcached screen cron)
 
-                # Установка стека LNAMP + phpMyAdmin
                 # Проверяем наличие репозитория php sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
@@ -363,24 +361,13 @@ EOF
                 fi
 
                 # Цикл установки пакетов
-                for package in "${pkgsLNAMP[@]}"; do
+                for package in "${pkgsLIST[@]}"; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "===================================" >> $logsINST 2>&1
                         echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
                         sudo apt-get install -y "$package" >> $logsINST 2>&1
-                    fi
-                done
-
-                # Цикл установки пакетов
-                for package in "${pkgsEGP[@]}"; do
-                    # Проверка на наличие и установка пакетов
-                    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        apt-get install -y "$package" >> $logsINST 2>&1
                     fi
                 done
 
