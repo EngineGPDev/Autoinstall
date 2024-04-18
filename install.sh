@@ -371,14 +371,6 @@ EOF
                     fi
                 done
 
-                # Установка версии php по умолчанию
-                if [[ "$(php -v | grep -oP '(?<=PHP )(\d+\.\d+)')" != "$verPHP" ]]; then
-                    sudo update-alternatives --set php /usr/bin/php$verPHP >> $logsINST 2>&1
-                    sudo update-alternatives --set php-config /usr/bin/php-config$verPHP >> $logsINST 2>&1
-                    sudo update-alternatives --set phpdbg /usr/bin/phpdbg$verPHP >> $logsINST 2>&1
-                    sudo update-alternatives --set phpize /usr/bin/phpize$verPHP >> $logsINST 2>&1
-                fi
-
                 # Установка phpMyAdmin
                 if ! dpkg-query -W -f='${Status}' "phpmyadmin" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -405,6 +397,14 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     read -p "Нажмите Enter для завершения..."
                     continue
+                fi
+
+                # Установка версии php по умолчанию
+                if [[ "$(php -v | grep -oP '(?<=PHP )(\d+\.\d+)')" != "$verPHP" ]]; then
+                    sudo update-alternatives --set php /usr/bin/php$verPHP >> $logsINST 2>&1
+                    sudo update-alternatives --set php-config /usr/bin/php-config$verPHP >> $logsINST 2>&1
+                    sudo update-alternatives --set phpdbg /usr/bin/phpdbg$verPHP >> $logsINST 2>&1
+                    sudo update-alternatives --set phpize /usr/bin/phpize$verPHP >> $logsINST 2>&1
                 fi
 
                 # Проверяем установку php-fpm по умолчанию
