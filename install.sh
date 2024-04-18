@@ -471,9 +471,6 @@ EOF
                 sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
                 sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
 
-                # Создание каталога для логов apache и nginx
-                sudo mkdir /var/log/enginegp >> $logsINST 2>&1
-
                 # Настраиваем apache
                 if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
