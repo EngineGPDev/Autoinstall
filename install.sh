@@ -145,9 +145,6 @@ while true; do
             clear
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                # Список пакетов для установки
-                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 apache2 libapache2-mod-fcgid nginx ufw memcached screen cron)
-
                 # Проверяем наличие репозитория php sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
@@ -228,6 +225,10 @@ while true; do
                     apt-get -y update >> $logsINST 2>&1
                     apt-get -y upgrade >> $logsINST 2>&1
                 fi
+
+                # Список пакетов для установки
+                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 apache2 libapache2-mod-fcgid nginx ufw memcached screen cron)
+                pkgsPMA=(php$defPHP-fpm php$defPHP-mbstring php$defPHP-zip php$defPHP-gd php$defPHP-json php$defPHP-curl)
 
                 # Генерирование паролей и имён
                 passSQL=$(pwgen -cns -1 16)
@@ -362,6 +363,17 @@ EOF
 
                 # Цикл установки пакетов
                 for package in "${pkgsLIST[@]}"; do
+                    # Проверка на наличие и установка пакетов
+                    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        sudo apt-get install -y "$package" >> $logsINST 2>&1
+                    fi
+                done
+
+                # Цикл установки пакетов
+                for package in "${pkgsPMA[@]}"; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "===================================" >> $logsINST 2>&1
