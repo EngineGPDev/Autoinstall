@@ -162,18 +162,20 @@ while true; do
                         defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
                     fi
                 else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Добавляем репозиторий php
-                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
+                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-php-*.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий php
+                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
 
-                    # Обновление таблиц и пакетов
-                    apt-get -y update >> $logsINST 2>&1
-                    apt-get -y upgrade >> $logsINST 2>&1
+                        # Обновление таблиц и пакетов
+                        apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
 
-                    # Определяем версию php по умолчанию
-                    defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
+                        # Определяем версию php по умолчанию
+                        defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
+                    fi
                 fi
 
                 # Проверяем наличие репозитория apache2 sury
@@ -190,15 +192,17 @@ while true; do
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Добавляем репозиторий apache2
-                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
+                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий apache2
+                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
 
-                    # Обновление таблиц и пакетов
-                    apt-get -y update >> $logsINST 2>&1
-                    apt-get -y upgrade >> $logsINST 2>&1
+                        # Обновление таблиц и пакетов
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
+                    fi
                 fi
 
                 # Проверяем наличие репозитория nginx sury
@@ -215,15 +219,17 @@ while true; do
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Добавляем репозиторий nginx
-                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
+                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий nginx
+                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
-                    # Обновление таблиц и пакетов
-                    apt-get -y update >> $logsINST 2>&1
-                    apt-get -y upgrade >> $logsINST 2>&1
+                        # Обновление таблиц и пакетов
+                        apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
+                    fi
                 fi
 
                 # Список пакетов для установки
@@ -613,15 +619,17 @@ EOF
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Добавляем репозиторий apache2
-                    sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
+                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий apache2
+                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
 
-                    # Обновление таблиц и пакетов
-                    apt-get -y update >> $logsINST 2>&1
-                    apt-get -y upgrade >> $logsINST 2>&1
+                        # Обновление таблиц и пакетов
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
+                    fi
                 fi
 
                 # Проверяем наличие репозитория nginx sury
@@ -638,15 +646,17 @@ EOF
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Добавляем репозиторий nginx
-                    sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
+                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
+                        echo "===================================" >> $logsINST 2>&1
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
+                        echo "===================================" >> $logsINST 2>&1
+                        # Добавляем репозиторий nginx
+                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
-                    # Обновление таблиц и пакетов
-                    apt-get -y update >> $logsINST 2>&1
-                    apt-get -y upgrade >> $logsINST 2>&1
+                        # Обновление таблиц и пакетов
+                        apt-get -y update >> $logsINST 2>&1
+                        apt-get -y upgrade >> $logsINST 2>&1
+                    fi
                 fi
 
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
