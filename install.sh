@@ -331,10 +331,10 @@ mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
+                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
                     sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                    sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
                     sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password $passSQL
 mysql-community-server mysql-community-server/re-root-pass password $passSQL
@@ -672,10 +672,10 @@ mysql-apt-config mysql-apt-config/select-server select mysql-8.0
 mysql-apt-config mysql-apt-config/select-tools select Enabled
 mysql-apt-config mysql-apt-config/select-preview select Disabled
 EOF
-                        sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
-                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                        sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
+                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
                         sudo apt-get update >> $logsINST 2>&1
-                        sudo rm mysql-apt-config_0.8.29-1_all.deb >> $logsINST 2>&1
+                        sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
                         sudo debconf-set-selections <<EOF
 mysql-community-server mysql-community-server/root-pass password $passMySQL
 mysql-community-server mysql-community-server/re-root-pass password $passMySQL
