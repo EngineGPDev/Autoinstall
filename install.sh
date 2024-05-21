@@ -46,7 +46,7 @@ for package in "${pkgsREQ[@]}"; do
 done
 
 # Массив с поддерживаемыми версиями операционной системы
-suppOS=("Debian 11" "Debian 12" "Ubuntu 22.04")
+suppOS=("Debian 11" "Debian 12" "Ubuntu 22.04" "Ubuntu 24.04")
 
 # Получаем текущую версию операционной системы
 disOS=`lsb_release -si`
@@ -166,7 +166,7 @@ while true; do
                     echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     # Добавляем репозиторий php
-                    sudo add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
+                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
 
                     # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
@@ -194,7 +194,7 @@ while true; do
                     echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     # Добавляем репозиторий apache2
-                    sudo add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
+                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
 
                     # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
@@ -219,7 +219,7 @@ while true; do
                     echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     # Добавляем репозиторий nginx
-                    sudo add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
+                    sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
                     # Обновление таблиц и пакетов
                     apt-get -y update >> $logsINST 2>&1
