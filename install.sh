@@ -579,13 +579,14 @@ EOF
             useEngineGP=""
 
             while true; do
-                echo "Хотите настроить локацию на сервере с EngineGP? (y/n)"
+                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n)"
                 read useEngineGP
 
                 case $useEngineGP in
                     [Yy]*)
-                        echo "Введите пароль root от MySQL:"
-                        read userPassword
+                        echo -n "Введите пароль root от MySQL:"
+                        read -s userPassword
+                        echo
                         passMySQL=$userPassword
                         break
                         ;;
