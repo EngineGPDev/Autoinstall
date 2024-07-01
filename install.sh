@@ -176,33 +176,6 @@ while true; do
                     fi
                 fi
 
-                # Проверяем наличие репозитория apache2 sury
-                if [[ " ${disOS} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        sudo apt-get -y update >> $logsINST 2>&1
-                        sudo apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                fi
-
                 # Проверяем наличие репозитория nginx sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
@@ -231,7 +204,7 @@ while true; do
                 fi
 
                 # Список пакетов для установки
-                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 apache2 libapache2-mod-fcgid nginx ufw memcached screen cron)
+                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 nginx ufw memcached screen cron)
                 pkgsPMA=(php$defPHP-fpm php$defPHP-mbstring php$defPHP-zip php$defPHP-gd php$defPHP-json php$defPHP-curl)
 
                 # Генерирование паролей и имён
@@ -242,43 +215,22 @@ while true; do
                 passEgpSQL=$(pwgen -cns -1 16)
                 usrEgpPASS=$(pwgen -cns -1 16)
 
-                # Конфигурация apache для EngineGP
-                apache_enginegp="<VirtualHost 127.0.0.1:81>
-     ServerName $sysIP
-     DocumentRoot /var/www/enginegp
-     DirectoryIndex index.php
-     ErrorLog \${APACHE_LOG_DIR}/enginegp.log
-     CustomLog \${APACHE_LOG_DIR}/enginegp.log combined
-
-     <Directory /var/www/enginegp>
-        Options Indexes FollowSymLinks MultiViews
-        AllowOverride All
-        Require all granted
-     </Directory>
-
-    <FilesMatch \.php$>
-      SetHandler "proxy:unix:/run/php/php$verPHP-fpm.sock\|fcgi://localhost"
-    </FilesMatch>
-</VirtualHost>
-"
-                # Конфигурация apache для EngineGP
-                apache_remoteip="RemoteIPHeader X-Real-IP
-RemoteIPHeader X-Client-IP
-RemoteIPHeader X-Forwarded-For
-RemoteIPInternalProxy 127.0.0.1
-"
-
                 # Конфигурация nginx для EngineGP
                 nginx_enginegp="server {
     listen 80;
     server_name $sysIP;
 
+    root /var/www/enginegp;
+    index index.php;
+
+    charset utf-8;
+
     location / {
-        proxy_pass http://127.0.0.1:81;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location /acp/ {
+        try_files \$uri \$uri/ /acp/index.php?\$args;
     }
 
     location ~* /\.(gif|jpeg|jpg|txt|png|tif|tiff|ico|jng|bmp|doc|pdf|rtf|xls|ppt|rar|rpm|swf|zip|bin|exe|dll|deb|cur)$ {
@@ -298,30 +250,52 @@ RemoteIPInternalProxy 127.0.0.1
     location ~ /\.en {
         deny all;
     }
+
+    error_page 403 /403.html;
+    location = /403.html {
+        internal;
+    }
+
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php$verPHP-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
 }"
+
                 # Конфигурация nginx для phpMyAdmin
                 nginx_phpmyadmin="server {
     listen 9090;
     server_name $sysIP;
-    
+
     root /usr/share/phpmyadmin;
+    index index.php;
 
     location / {
-        index index.php;
         try_files \$uri \$uri/ /index.php;
+    }
 
-        location ~ ^/(.+\.php)$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
-        }
-
-        location ~* ^/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
-            root /usr/share/phpmyadmin;
-        }
+    location ~* ^/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        root /usr/share/phpmyadmin;
     }
 
     location ~ /\.ht {
         deny all;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
     }
 }"
 
@@ -487,43 +461,6 @@ EOF
                 sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
                 sudo find /var/www/enginegp -type f -exec chmod 644 {} \; >> $logsINST 2>&1
                 sudo find /var/www/enginegp -type d -exec chmod 755 {} \; >> $logsINST 2>&1
-
-                # Настраиваем apache
-                if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "apache2 не настроен. Выполняется настройка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Разрешаем доступ к портам
-                    sudo ufw allow 80 >> $logsINST 2>&1
-                    sudo ufw allow 443 >> $logsINST 2>&1
-
-                    # Изменяем порт, на котором сидит Apache
-                    sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> $logsINST 2>&1
-                    echo "Listen 127.0.0.1:81" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
-
-                    # Создаем виртуальный хостинг для EngineGP
-                    echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
-
-                    # Создаем конфиг remoteip
-                    echo -e "$apache_remoteip" | sudo tee /etc/apache2/conf-available/remoteip.conf >> $logsINST 2>&1
-
-                    # Включаем модули Apache
-                    sudo a2enmod actions fcgid alias proxy_fcgi rewrite remoteip >> $logsINST 2>&1
-                    sudo a2enconf remoteip >> $logsINST 2>&1
-                    sudo systemctl restart apache2 >> $logsINST 2>&1
-
-                    # Проводим тестирование и запускаем конфиг Apache
-                    sudo apachectl configtest >> $logsINST 2>&1
-                    sudo a2ensite enginegp.conf >> $logsINST 2>&1
-                    sudo a2dissite 000-default.conf >> $logsINST 2>&1
-                    sudo systemctl restart apache2 >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "libapache2-mod-fcgid не установлен. Продолжение установки невозможно." >> $logsINST 2>&1
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
-                fi
 
                 # Настраиваем nginx
                 if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
