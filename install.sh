@@ -5,10 +5,8 @@
 # @copyright Copyright (c) 2023-present Solovev Sergei <inbox@seansolovev.ru>
 # 
 # @link      https://github.com/EngineGPDev/Autoinstall for the canonical source repository
-# @link      https://gitforge.ru/EngineGP/Autoinstall for the canonical source repository
 #
 # @license   https://github.com/EngineGPDev/Autoinstall/blob/main/LICENSE MIT License
-# @license   https://gitforge.ru/EngineGP/Autoinstall/src/branch/main/LICENSE MIT License
 ##
 
 # Обновление таблиц и системы
@@ -403,8 +401,8 @@ phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
-                    echo -e "$nginx_phpmyadmin" | sudo tee /etc/nginx/sites-available/00-phpmyadmin >> $logsINST 2>&1
-                    sudo ln -s /etc/nginx/sites-available/00-phpmyadmin /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+                    echo -e "$nginx_phpmyadmin" | sudo tee /etc/nginx/sites-available/00-phpmyadmin.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/00-phpmyadmin.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
@@ -485,9 +483,10 @@ EOF
                     continue
                 fi
 
-                # Выставляем права на каталог
+                # Выставляем права на каталог и файлы
                 sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
-                sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
+                sudo find /var/www/enginegp -type f -exec chmod 644 {} \; >> $logsINST 2>&1
+                sudo find /var/www/enginegp -type d -exec chmod 755 {} \; >> $logsINST 2>&1
 
                 # Настраиваем apache
                 if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
@@ -533,18 +532,18 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     # Удаляем дефолтный и создаём конфиг EngineGP
                     sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
-                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/01-enginegp >> $logsINST 2>&1
-                    sudo ln -s /etc/nginx/sites-available/01-enginegp /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/01-enginegp.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/01-enginegp.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
                     sudo systemctl restart nginx >> $logsINST 2>&1
                 else
-                     echo "===================================" >> $logsINST 2>&1
-                     echo "NGINX не установлен. Продолжение установки невозможно." | tee -a $logsINST
-                     echo "===================================" >> $logsINST 2>&1
-                     read -p "Нажмите Enter для завершения..."
-                     continue
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "NGINX не установлен. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Сообщение о завершении установки
@@ -606,33 +605,6 @@ EOF
             
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                # Проверяем наличие репозитория apache2 sury
-                if [[ " ${disOS} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        sudo apt-get -y update >> $logsINST 2>&1
-                        sudo apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                fi
-
                 # Проверяем наличие репозитория nginx sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
@@ -659,6 +631,31 @@ EOF
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 fi
+
+                # Конфигурация nginx для FastDL
+                nginx_fastdl="server {
+    listen 8080;
+    location / {
+        root   /var/nginx/;
+        index  index.html index.htm;
+        set \$limit_rate 20m;
+    }
+    location ~ /(.*)/.*\.cfg {
+        deny all;
+    }
+    location ~ /(.*)/.*\.vpk {
+        deny all;
+    }
+    location ~ /(.*)/cfg/ {
+        deny all;
+    }
+    location ~ /(.*)/addons/ {
+        deny all;
+    }
+    location ~ /(.*)/logs/ {
+        deny all;
+    }
+}"
 
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
 
@@ -713,6 +710,30 @@ EOF
                     fi
                 done
 
+                # Настраиваем FastDL
+                if [ ! -f /etc/nginx/sites-available/02-fastdl.conf ]; then
+                    # Создаём каталог и выдаём ему права
+                    sudo mkdir -p /var/nginx >> $logsINST 2>&1
+                    sudo chmod -R 755 /var/nginx >> $logsINST 2>&1
+
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "fastdl не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Удаляем дефолтный конфиг и создаём для FastDL
+                    sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
+                    echo -e "$nginx_fastdl" | sudo tee /etc/nginx/sites-available/02-fastdl.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/02-fastdl.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+
+                    # Проводим тестирование и запускаем конфиг NGINX
+                    sudo nginx -t >> $logsINST 2>&1
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "fastdl не установлен. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
+                fi
+
                 # Устанавливаем ProFTPD
                 if ! dpkg-query -W -f='${Status}' "proftpd" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -748,14 +769,6 @@ EOF
                     echo "/root/iptables_block" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
                     echo "exit 0" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
                     sudo chmod +x /etc/rc.local >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "rc.local не настроен. Выполняется настройка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    sed -i '14d' /etc/rc.local >> $logsINST 2>&1
-                    echo "/root/iptables_block" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
-                    echo "exit 0" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
-                    sudo chmod +x /etc/rc.local >> $logsINST 2>&1
                 fi
 
                 # Настраиваем iptables
@@ -781,7 +794,7 @@ EOF
                 # Установка SteamCMD
                 if [ ! -d "/path/cmd" ]; then
                     echo "===================================" >> $logsINST 2>&1
-                    echo "SteamCMD не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "steamcmd не настроен. Выполняется настройка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
                     groupadd -g 1000 servers >> $logsINST 2>&1
@@ -799,7 +812,7 @@ EOF
                     rm steamcmd_linux.tar.gz >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
-                    echo "SteamCMD уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
+                    echo "steamcmd уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     read -p "Нажмите Enter для завершения..."
                     continue
