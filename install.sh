@@ -663,6 +663,7 @@ EOF
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
+                    sudo systemctl restart nginx >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "fastdl не установлен. Продолжение установки невозможно." | tee -a $logsINST
