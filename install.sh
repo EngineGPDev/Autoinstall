@@ -5,10 +5,8 @@
 # @copyright Copyright (c) 2023-present Solovev Sergei <inbox@seansolovev.ru>
 # 
 # @link      https://github.com/EngineGPDev/Autoinstall for the canonical source repository
-# @link      https://gitforge.ru/EngineGP/Autoinstall for the canonical source repository
 #
 # @license   https://github.com/EngineGPDev/Autoinstall/blob/main/LICENSE MIT License
-# @license   https://gitforge.ru/EngineGP/Autoinstall/src/branch/main/LICENSE MIT License
 ##
 
 # Обновление таблиц и системы
@@ -178,33 +176,6 @@ while true; do
                     fi
                 fi
 
-                # Проверяем наличие репозитория apache2 sury
-                if [[ " ${disOS} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        sudo apt-get -y update >> $logsINST 2>&1
-                        sudo apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                fi
-
                 # Проверяем наличие репозитория nginx sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
@@ -233,7 +204,7 @@ while true; do
                 fi
 
                 # Список пакетов для установки
-                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 apache2 libapache2-mod-fcgid nginx ufw memcached screen cron)
+                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 nginx ufw memcached screen cron)
                 pkgsPMA=(php$defPHP-fpm php$defPHP-mbstring php$defPHP-zip php$defPHP-gd php$defPHP-json php$defPHP-curl)
 
                 # Генерирование паролей и имён
@@ -244,43 +215,22 @@ while true; do
                 passEgpSQL=$(pwgen -cns -1 16)
                 usrEgpPASS=$(pwgen -cns -1 16)
 
-                # Конфигурация apache для EngineGP
-                apache_enginegp="<VirtualHost 127.0.0.1:81>
-     ServerName $sysIP
-     DocumentRoot /var/www/enginegp
-     DirectoryIndex index.php
-     ErrorLog \${APACHE_LOG_DIR}/enginegp.log
-     CustomLog \${APACHE_LOG_DIR}/enginegp.log combined
-
-     <Directory /var/www/enginegp>
-        Options Indexes FollowSymLinks MultiViews
-        AllowOverride All
-        Require all granted
-     </Directory>
-
-    <FilesMatch \.php$>
-      SetHandler "proxy:unix:/run/php/php$verPHP-fpm.sock\|fcgi://localhost"
-    </FilesMatch>
-</VirtualHost>
-"
-                # Конфигурация apache для EngineGP
-                apache_remoteip="RemoteIPHeader X-Real-IP
-RemoteIPHeader X-Client-IP
-RemoteIPHeader X-Forwarded-For
-RemoteIPInternalProxy 127.0.0.1
-"
-
                 # Конфигурация nginx для EngineGP
                 nginx_enginegp="server {
     listen 80;
     server_name $sysIP;
 
+    root /var/www/enginegp;
+    index index.php;
+
+    charset utf-8;
+
     location / {
-        proxy_pass http://127.0.0.1:81;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location /acp/ {
+        try_files \$uri \$uri/ /acp/index.php?\$args;
     }
 
     location ~* /\.(gif|jpeg|jpg|txt|png|tif|tiff|ico|jng|bmp|doc|pdf|rtf|xls|ppt|rar|rpm|swf|zip|bin|exe|dll|deb|cur)$ {
@@ -300,30 +250,52 @@ RemoteIPInternalProxy 127.0.0.1
     location ~ /\.en {
         deny all;
     }
+
+    error_page 403 /403.html;
+    location = /403.html {
+        internal;
+    }
+
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php$verPHP-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
 }"
+
                 # Конфигурация nginx для phpMyAdmin
                 nginx_phpmyadmin="server {
     listen 9090;
     server_name $sysIP;
-    
+
     root /usr/share/phpmyadmin;
+    index index.php;
 
     location / {
-        index index.php;
         try_files \$uri \$uri/ /index.php;
+    }
 
-        location ~ ^/(.+\.php)$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
-        }
-
-        location ~* ^/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
-            root /usr/share/phpmyadmin;
-        }
+    location ~* ^/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        root /usr/share/phpmyadmin;
     }
 
     location ~ /\.ht {
         deny all;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/php$defPHP-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
     }
 }"
 
@@ -403,8 +375,8 @@ phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
-                    echo -e "$nginx_phpmyadmin" | sudo tee /etc/nginx/sites-available/00-phpmyadmin >> $logsINST 2>&1
-                    sudo ln -s /etc/nginx/sites-available/00-phpmyadmin /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+                    echo -e "$nginx_phpmyadmin" | sudo tee /etc/nginx/sites-available/00-phpmyadmin.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/00-phpmyadmin.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
@@ -485,46 +457,10 @@ EOF
                     continue
                 fi
 
-                # Выставляем права на каталог
+                # Выставляем права на каталог и файлы
                 sudo chown -R www-data:www-data /var/www/enginegp >> $logsINST 2>&1
-                sudo chmod -R 755 /var/www/enginegp >> $logsINST 2>&1
-
-                # Настраиваем apache
-                if dpkg-query -W -f='${Status}' "libapache2-mod-fcgid" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "apache2 не настроен. Выполняется настройка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    # Разрешаем доступ к портам
-                    sudo ufw allow 80 >> $logsINST 2>&1
-                    sudo ufw allow 443 >> $logsINST 2>&1
-
-                    # Изменяем порт, на котором сидит Apache
-                    sudo mv /etc/apache2/ports.conf /etc/apache2/ports.conf.default >> $logsINST 2>&1
-                    echo "Listen 127.0.0.1:81" | sudo tee /etc/apache2/ports.conf >> $logsINST 2>&1
-
-                    # Создаем виртуальный хостинг для EngineGP
-                    echo -e "$apache_enginegp" | sudo tee /etc/apache2/sites-available/enginegp.conf >> $logsINST 2>&1
-
-                    # Создаем конфиг remoteip
-                    echo -e "$apache_remoteip" | sudo tee /etc/apache2/conf-available/remoteip.conf >> $logsINST 2>&1
-
-                    # Включаем модули Apache
-                    sudo a2enmod actions fcgid alias proxy_fcgi rewrite remoteip >> $logsINST 2>&1
-                    sudo a2enconf remoteip >> $logsINST 2>&1
-                    sudo systemctl restart apache2 >> $logsINST 2>&1
-
-                    # Проводим тестирование и запускаем конфиг Apache
-                    sudo apachectl configtest >> $logsINST 2>&1
-                    sudo a2ensite enginegp.conf >> $logsINST 2>&1
-                    sudo a2dissite 000-default.conf >> $logsINST 2>&1
-                    sudo systemctl restart apache2 >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "libapache2-mod-fcgid не установлен. Продолжение установки невозможно." >> $logsINST 2>&1
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
-                fi
+                sudo find /var/www/enginegp -type f -exec chmod 644 {} \; >> $logsINST 2>&1
+                sudo find /var/www/enginegp -type d -exec chmod 755 {} \; >> $logsINST 2>&1
 
                 # Настраиваем nginx
                 if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
@@ -533,18 +469,18 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     # Удаляем дефолтный и создаём конфиг EngineGP
                     sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
-                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/01-enginegp >> $logsINST 2>&1
-                    sudo ln -s /etc/nginx/sites-available/01-enginegp /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+                    echo -e "$nginx_enginegp" | sudo tee /etc/nginx/sites-available/01-enginegp.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/01-enginegp.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
 
                     # Проводим тестирование и запускаем конфиг NGINX
                     sudo nginx -t >> $logsINST 2>&1
                     sudo systemctl restart nginx >> $logsINST 2>&1
                 else
-                     echo "===================================" >> $logsINST 2>&1
-                     echo "NGINX не установлен. Продолжение установки невозможно." | tee -a $logsINST
-                     echo "===================================" >> $logsINST 2>&1
-                     read -p "Нажмите Enter для завершения..."
-                     continue
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "NGINX не установлен. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Сообщение о завершении установки
@@ -579,13 +515,14 @@ EOF
             useEngineGP=""
 
             while true; do
-                echo "Хотите настроить локацию на сервере с EngineGP? (y/n)"
+                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n)"
                 read useEngineGP
 
                 case $useEngineGP in
                     [Yy]*)
-                        echo "Введите пароль root от MySQL:"
-                        read userPassword
+                        echo -n "Введите пароль root от MySQL:"
+                        read -s userPassword
+                        echo
                         passMySQL=$userPassword
                         break
                         ;;
@@ -605,33 +542,6 @@ EOF
             
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                # Проверяем наличие репозитория apache2 sury
-                if [[ " ${disOS} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/apache2.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo curl -sSL https://packages.sury.org/apache2/README.txt | sudo bash -x >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-apache2-*.list" ]; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "Репозиторий apache2 не обнаружен. Добавляем..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        # Добавляем репозиторий apache2
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/apache2 -y >> $logsINST 2>&1
-
-                        # Обновление таблиц и пакетов
-                        sudo apt-get -y update >> $logsINST 2>&1
-                        sudo apt-get -y upgrade >> $logsINST 2>&1
-                    fi
-                fi
-
                 # Проверяем наличие репозитория nginx sury
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
@@ -658,6 +568,31 @@ EOF
                         apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 fi
+
+                # Конфигурация nginx для FastDL
+                nginx_fastdl="server {
+    listen 8080;
+    location / {
+        root   /var/nginx/;
+        index  index.html index.htm;
+        set \$limit_rate 20m;
+    }
+    location ~ /(.*)/.*\.cfg {
+        deny all;
+    }
+    location ~ /(.*)/.*\.vpk {
+        deny all;
+    }
+    location ~ /(.*)/cfg/ {
+        deny all;
+    }
+    location ~ /(.*)/addons/ {
+        deny all;
+    }
+    location ~ /(.*)/logs/ {
+        deny all;
+    }
+}"
 
                 pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
 
@@ -712,6 +647,31 @@ EOF
                     fi
                 done
 
+                # Настраиваем FastDL
+                if [ ! -f /etc/nginx/sites-available/02-fastdl.conf ]; then
+                    # Создаём каталог и выдаём ему права
+                    sudo mkdir -p /var/nginx >> $logsINST 2>&1
+                    sudo chmod -R 755 /var/nginx >> $logsINST 2>&1
+
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "fastdl не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    # Удаляем дефолтный конфиг и создаём для FastDL
+                    sudo rm /etc/nginx/sites-enabled/default >> $logsINST 2>&1
+                    echo -e "$nginx_fastdl" | sudo tee /etc/nginx/sites-available/02-fastdl.conf >> $logsINST 2>&1
+                    sudo ln -s /etc/nginx/sites-available/02-fastdl.conf /etc/nginx/sites-enabled/ >> $logsINST 2>&1
+
+                    # Проводим тестирование и запускаем конфиг NGINX
+                    sudo nginx -t >> $logsINST 2>&1
+                    sudo systemctl restart nginx >> $logsINST 2>&1
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "fastdl не установлен. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
+                fi
+
                 # Устанавливаем ProFTPD
                 if ! dpkg-query -W -f='${Status}' "proftpd" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -747,14 +707,6 @@ EOF
                     echo "/root/iptables_block" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
                     echo "exit 0" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
                     sudo chmod +x /etc/rc.local >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "rc.local не настроен. Выполняется настройка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    sed -i '14d' /etc/rc.local >> $logsINST 2>&1
-                    echo "/root/iptables_block" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
-                    echo "exit 0" | sudo tee -a /etc/rc.local >> $logsINST 2>&1
-                    sudo chmod +x /etc/rc.local >> $logsINST 2>&1
                 fi
 
                 # Настраиваем iptables
@@ -780,7 +732,7 @@ EOF
                 # Установка SteamCMD
                 if [ ! -d "/path/cmd" ]; then
                     echo "===================================" >> $logsINST 2>&1
-                    echo "SteamCMD не настроен. Выполняется настройка..." | tee -a $logsINST
+                    echo "steamcmd не настроен. Выполняется настройка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
                     groupadd -g 1000 servers >> $logsINST 2>&1
@@ -798,7 +750,7 @@ EOF
                     rm steamcmd_linux.tar.gz >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
-                    echo "SteamCMD уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
+                    echo "steamcmd уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     read -p "Нажмите Enter для завершения..."
                     continue
