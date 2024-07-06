@@ -143,14 +143,23 @@ while true; do
             clear
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                # Проверяем наличие репозитория php sury
+                # Проверяем наличие репозитория php
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
+                        # Установка используемых пакетов
+                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
+
+                        # Скачиваем ключа зеркала репозитория Sury
+                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
+                        # Устанавливаем ключа зеркала репозитория Sury
+                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
                         # Добавляем репозиторий php
-                        sudo curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x >> $logsINST 2>&1
+                        sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://mirror.enginegp.com/sury/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
@@ -176,14 +185,23 @@ while true; do
                     fi
                 fi
 
-                # Проверяем наличие репозитория nginx sury
+                # Проверяем наличие репозитория nginx
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
+                        # Установка используемых пакетов
+                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
+
+                        # Скачиваем ключа зеркала репозитория Sury
+                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
+                        # Устанавливаем ключа зеркала репозитория Sury
+                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
                         # Добавляем репозиторий nginx
-                        sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
+                        sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
@@ -542,14 +560,23 @@ EOF
             
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
-                # Проверяем наличие репозитория nginx sury
+                # Проверяем наличие репозитория nginx
                 if [[ " ${disOS} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
+                        # Установка используемых пакетов
+                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
+
+                        # Скачиваем ключа зеркала репозитория Sury
+                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
+                        # Устанавливаем ключа зеркала репозитория Sury
+                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+
                         # Добавляем репозиторий nginx
-                        sudo curl -sSL https://packages.sury.org/nginx/README.txt | sudo bash -x >> $logsINST 2>&1
+                        sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
                         apt-get -y update >> $logsINST 2>&1
