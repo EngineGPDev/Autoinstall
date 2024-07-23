@@ -761,20 +761,26 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "steamcmd не настроен. Выполняется настройка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
-                    groupadd -g 1000 servers >> $logsINST 2>&1
-                    mkdir -p /path /path/cmd /path/update /path/maps >> $logsINST 2>&1
-                    chmod -R 755 /path >> $logsINST 2>&1
-                    chown root:servers /path >> $logsINST 2>&1
-                    mkdir -p /servers >> $logsINST 2>&1
-                    chmod -R 711 /servers >> $logsINST 2>&1
-                    chown root:servers /servers >> $logsINST 2>&1
-                    mkdir -p /copy >> $logsINST 2>&1
-                    chmod -R 750 /copy >> $logsINST 2>&1
-                    chown root:root /copy >> $logsINST 2>&1
-                    sudo curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
-                    tar -xzf steamcmd_linux.tar.gz -C /path/cmd >> $logsINST 2>&1
-                    rm steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
+                    sudo groupadd -g 1000 servers >> $logsINST 2>&1
+
+                    sudo mkdir -p /path /path/cmd /path/update /path/maps >> $logsINST 2>&1
+                    sudo chmod -R 755 /path >> $logsINST 2>&1
+                    sudo chown root:servers /path >> $logsINST 2>&1
+
+                    sudo mkdir -p /servers >> $logsINST 2>&1
+                    sudo chmod -R 711 /servers >> $logsINST 2>&1
+                    sudo chown root:servers /servers >> $logsINST 2>&1
+
+                    sudo mkdir -p /copy >> $logsINST 2>&1
+                    sudo chmod -R 750 /copy >> $logsINST 2>&1
+                    sudo chown root:root /copy >> $logsINST 2>&1
+
+                    sudo sudo curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo tar -xzf steamcmd_linux.tar.gz -C /path/cmd >> $logsINST 2>&1
+                    sudo rm steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo chmod +x /path/cmd/steamcmd.sh >> $logsINST 2>&1
+                    sudo /path/cmd/steamcmd.sh +quit >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "steamcmd уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
@@ -972,7 +978,7 @@ EOF
                     case $csgo_choice in
                         1)
                             mkdir -p /path/csgo/steam 2>&1 | tee -a ${logsINST}
-                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/csgo/steam +app_update 740 validate +quit 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | tee -a ${logsINST}
                             csgo_choice
                             ;;
                         0)
@@ -998,7 +1004,7 @@ EOF
                     case $cs2_choice in
                         1)
                             mkdir -p /path/cs2/steam 2>&1 | tee -a ${logsINST}
-                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/cs2/steam +app_update 730 validate +quit 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | tee -a ${logsINST}
                             cs2_choice
                             ;;
                         0)
@@ -1025,7 +1031,30 @@ EOF
                     # Add code for installing MTA game here
                     ;;
                 10)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/rust /path/update/rust /servers/rust
+                    echo "Меню установки RUST"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " rust_choice
+                    case $rust_choice in
+                        1)
+                            clear
+                            mkdir -p /path/rust/steam 2>&1 | tee -a ${logsINST}
+                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | tee -a ${logsINST}
+                            rust_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 0)
                     choice
