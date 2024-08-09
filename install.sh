@@ -831,13 +831,6 @@ EOF
                     mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: 1.6"
                     echo "1. Steam [Clean server]"
-                    echo "2. Build ReHLDS"
-                    echo "3. Build 8308"
-                    echo "4. Build 8196"
-                    echo "5. Build 7882"
-                    echo "6. Build 7559"
-                    echo "7. Build 6153"
-                    echo "8. Build 5787"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " cs16_choice
@@ -845,58 +838,7 @@ EOF
                     case $cs16_choice in
                         1)
                             mkdir -p /path/cs/steam 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/steam/steam.zip $gamesURL/cs/steam.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/steam/steam.zip -d /path/cs/steam/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        2)
-                            mkdir -p /path/cs/rehlds 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/rehlds/rehlds.zip $gamesURL/cs/rehlds.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/rehlds/rehlds.zip -d /path/cs/rehlds/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/rehlds/rehlds.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        3)
-                            mkdir -p /path/cs/8308 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/8308/8308.zip $gamesURL/cs/8308.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/8308/8308.zip -d /path/cs/8308/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/8308/8308.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        4)
-                            mkdir -p /path/cs/8196 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/8196/8196.zip $gamesURL/cs/8196.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/8196/8196.zip -d /path/cs/8196/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/8308/8308.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        5)
-                            mkdir -p /path/cs/7882 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/7882/7882.zip $gamesURL/cs/7882.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/7882/7882.zip -d /path/cs/7882/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/7882/7882.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        6)
-                            mkdir -p /path/cs/7559 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/7559/7559.zip $gamesURL/cs/7559.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/7559/7559.zip -d /path/cs/7559/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/7559/7559.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        7)
-                            mkdir -p /path/cs/6153 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/6153/6153.zip $gamesURL/cs/6153.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/6153/6153.zip -d /path/cs/6153/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/6153/6153.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        8)
-                            mkdir -p /path/cs/5787 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/5787/5787.zip $gamesURL/cs/5787.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/5787/5787.zip -d /path/cs/5787/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/5787/5787.zip 2>&1 | tee -a ${logsINST}
+                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | tee -a ${logsINST}
                             cs16_choice
                             ;;
                         0)
