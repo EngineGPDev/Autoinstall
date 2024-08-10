@@ -533,12 +533,12 @@ EOF
             useEngineGP=""
 
             while true; do
-                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n)"
+                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n) "
                 read useEngineGP
 
                 case $useEngineGP in
                     [Yy]*)
-                        echo -n "Введите пароль root от MySQL:"
+                        echo -n "Введите пароль root от MySQL: "
                         read -s userPassword
                         echo
                         passMySQL=$userPassword
@@ -557,7 +557,7 @@ EOF
             clear
 
             passProFTPD=$(pwgen -cns -1 16)
-            
+
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Проверяем наличие репозитория nginx
@@ -761,8 +761,7 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "steamcmd не настроен. Выполняется настройка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    sudo groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
-                    sudo groupadd -g 1000 servers >> $logsINST 2>&1
+                    sudo groupadd -f servers >> $logsINST 2>&1
 
                     sudo mkdir -p /path /path/cmd /path/update /path/maps >> $logsINST 2>&1
                     sudo chmod -R 755 /path >> $logsINST 2>&1
