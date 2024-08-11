@@ -598,12 +598,6 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
 
                     apt-get install -y mariadb-server >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mariadb-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
                 fi
 
                 # Цикл установки пакетов
