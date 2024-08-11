@@ -318,40 +318,27 @@ while true; do
 }"
 
                 # Устанавливаем базу данных
-                if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
+                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
-mysql-apt-config mysql-apt-config/select-server select mysql-8.0
-mysql-apt-config mysql-apt-config/select-tools select Enabled
-mysql-apt-config mysql-apt-config/select-preview select Disabled
-EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $passSQL
-mysql-community-server mysql-community-server/re-root-pass password $passSQL
-mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
-EOF
-                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
+
+                    apt-get install -y mariadb-server >> $logsINST 2>&1
 
                     # Создание пользователя
-                    mysql -u root -p$passSQL -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
+                    sudo mysql -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
 
                     # Создание базы данных
-                    mysql -u root -p$passSQL -e "CREATE DATABASE $dbEgpSQL;" >> $logsINST 2>&1
-                    
+                    sudo mysql -e "CREATE DATABASE $dbEgpSQL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
+    
                     # Предоставление привилегий пользователю на базу данных
-                    mysql -u root -p$passSQL -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
-                    
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
+    
                     # Применение изменений привилегий
-                    mysql -u root -p$passSQL -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
+                    sudo mysql -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "mariadb-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     read -p "Нажмите Enter для завершения..."
                     continue
@@ -388,8 +375,6 @@ EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
 phpmyadmin phpmyadmin/mysql/app-pass password $passPMA
 phpmyadmin phpmyadmin/password-confirm password $passPMA
-phpmyadmin phpmyadmin/mysql/admin-pass password $passSQL
-phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
@@ -465,7 +450,7 @@ EOF
                     sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$(echo "$usrEgpHASH" | sed 's/[\/&]/\\&/g')/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                    mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+                    sudo mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     rm /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -505,7 +490,7 @@ EOF
                 echo "===================================" | tee -a $saveDIR
                 echo "Установка завершена!" | tee -a $saveDIR
                 echo "Ссылка на EngineGP: http://$sysIP/" | tee -a $saveDIR
-                echo "Пользователь: root" | tee -a $saveDIR
+                echo "Пользователь: admin" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 echo "MySQL данные для EngineGP" | tee -a $saveDIR
@@ -515,8 +500,7 @@ EOF
                 echo "Пароль: $passEgpSQL" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 echo "Системные данные MySQL" | tee -a $saveDIR
-                echo "MySQL пароль от root: $passSQL" | tee -a $saveDIR
-                echo "MySQL пароль от phpMyAdmin: $passPMA" | tee -a $saveDIR
+                echo "Пароль пользователя phpmyadmin: $passPMA" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
@@ -528,32 +512,6 @@ EOF
             fi
             ;;
         2)
-            clear
-
-            useEngineGP=""
-
-            while true; do
-                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n) "
-                read useEngineGP
-
-                case $useEngineGP in
-                    [Yy]*)
-                        echo -n "Введите пароль root от MySQL: "
-                        read -s userPassword
-                        echo
-                        passMySQL=$userPassword
-                        break
-                        ;;
-                    [Nn]*)
-                        passMySQL=$(pwgen -cns -1 16)
-                        break
-                        ;;
-                    *)
-                        echo "Пожалуйста, введите 'y' или 'n'."
-                        ;;
-                esac
-            done
-
             clear
 
             passProFTPD=$(pwgen -cns -1 16)
@@ -634,33 +592,18 @@ EOF
                 fi
 
                 # Устанавливаем базу данных
-                if [[ "${useEngineGP,,}" == "n" ]]; then
-                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        sudo debconf-set-selections <<EOF
-mysql-apt-config mysql-apt-config/select-server select mysql-8.0
-mysql-apt-config mysql-apt-config/select-tools select Enabled
-mysql-apt-config mysql-apt-config/select-preview select Disabled
-EOF
-                        sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo apt-get update >> $logsINST 2>&1
-                        sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $passMySQL
-mysql-community-server mysql-community-server/re-root-pass password $passMySQL
-mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
-EOF
-                        sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        read -p "Нажмите Enter для завершения..."
-                        continue
-                    fi
+                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+
+                    apt-get install -y mariadb-server >> $logsINST 2>&1
+                else
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "mariadb-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+                    read -p "Нажмите Enter для завершения..."
+                    continue
                 fi
 
                 # Цикл установки пакетов
@@ -704,17 +647,33 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "proftpd не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
+
+                    # Устанавливаем ProFTPD и необходимые модули
                     echo "proftpd shared/proftpd/inetd_or_standalone select standalone" | debconf-set-selections
                     sudo apt-get install -y proftpd-basic proftpd-mod-mysql >> $logsINST 2>&1
+
+                    # Скачиваем конфигурационные файлы ProFTPD
                     curl -o /etc/proftpd/proftpd.conf $resURL/Components/ProFTPD/proftpd >> $logsINST 2>&1
                     curl -o /etc/proftpd/modules.conf $resURL/Components/ProFTPD/proftpd_modules >> $logsINST 2>&1
                     curl -o /etc/proftpd/sql.conf $resURL/Components/ProFTPD/proftpd_sql >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
-                    curl -sSL $resURL/Components/ProFTPD/sqldump.sql | mysql -u root -p$passMySQL ftp >> $logsINST 2>&1
-                    sed -i 's/passwdfor/'$passMySQL'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
+
+                    # Создаем базу данных для ProFTPD
+                    sudo mysql -e "CREATE DATABASE ftp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
+
+                    # Создаем пользователя для ProFTPD и предоставляем ему все права на базу данных ftp
+                    sudo mysql -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
+
+                    # Импортируем дамп базы данных для ProFTPD
+                    curl -sSL $resURL/Components/ProFTPD/sqldump.sql | sudo mysql ftp >> $logsINST 2>&1
+
+                    # Заменяем passwdfor на реальный пароль в конфигурационном файле
+                    sed -i 's/passwdfor/'$passProFTPD'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
+
+                    # Устанавливаем права доступа на конфигурационные файлы
                     chmod -R 750 /etc/proftpd >> $logsINST 2>&1
+
+                    # Перезапускаем ProFTPD для применения изменений
                     systemctl restart proftpd >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -789,11 +748,10 @@ EOF
                 fi
                 echo "===================================" | tee -a $saveDIR
                 echo "Данные локации" | tee -a $saveDIR
-                echo "SQL_Username: root" | tee -a $saveDIR
-                echo "SQL_Password: $passMySQL" | tee -a $saveDIR
+                echo "SQL_Username: ftp" | tee -a $saveDIR
+                echo "SQL_Password: $passProFTPD" | tee -a $saveDIR
                 echo "SQL_FileTP: ftp" | tee -a $saveDIR
                 echo "SQL_Port: 3306" | tee -a $saveDIR
-                echo "Password for FTP database: $passProFTPD" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
