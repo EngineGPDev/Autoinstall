@@ -318,40 +318,27 @@ while true; do
 }"
 
                 # Устанавливаем базу данных
-                if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
+                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
-mysql-apt-config mysql-apt-config/select-server select mysql-8.0
-mysql-apt-config mysql-apt-config/select-tools select Enabled
-mysql-apt-config mysql-apt-config/select-preview select Disabled
-EOF
-                    sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo apt-get update >> $logsINST 2>&1
-                    sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                    sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $passSQL
-mysql-community-server mysql-community-server/re-root-pass password $passSQL
-mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
-EOF
-                    sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
+
+                    apt-get install -y mariadb-server >> $logsINST 2>&1
 
                     # Создание пользователя
-                    mysql -u root -p$passSQL -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
+                    sudo mysql -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
 
                     # Создание базы данных
-                    mysql -u root -p$passSQL -e "CREATE DATABASE $dbEgpSQL;" >> $logsINST 2>&1
-                    
+                    sudo mysql -e "CREATE DATABASE $dbEgpSQL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
+    
                     # Предоставление привилегий пользователю на базу данных
-                    mysql -u root -p$passSQL -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
-                    
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
+    
                     # Применение изменений привилегий
-                    mysql -u root -p$passSQL -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
+                    sudo mysql -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
-                    echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
+                    echo "mariadb-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
                     read -p "Нажмите Enter для завершения..."
                     continue
@@ -388,8 +375,6 @@ EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
 phpmyadmin phpmyadmin/mysql/app-pass password $passPMA
 phpmyadmin phpmyadmin/password-confirm password $passPMA
-phpmyadmin phpmyadmin/mysql/admin-pass password $passSQL
-phpmyadmin phpmyadmin/app-password-confirm password $passSQL
 phpmyadmin phpmyadmin/reconfigure-webserver multiselect
 EOF
                     sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y phpmyadmin >> $logsINST 2>&1
@@ -465,7 +450,7 @@ EOF
                     sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$(echo "$usrEgpHASH" | sed 's/[\/&]/\\&/g')/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
-                    mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+                    sudo mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     rm /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -505,7 +490,7 @@ EOF
                 echo "===================================" | tee -a $saveDIR
                 echo "Установка завершена!" | tee -a $saveDIR
                 echo "Ссылка на EngineGP: http://$sysIP/" | tee -a $saveDIR
-                echo "Пользователь: root" | tee -a $saveDIR
+                echo "Пользователь: admin" | tee -a $saveDIR
                 echo "Пароль: $usrEgpPASS" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 echo "MySQL данные для EngineGP" | tee -a $saveDIR
@@ -515,8 +500,7 @@ EOF
                 echo "Пароль: $passEgpSQL" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 echo "Системные данные MySQL" | tee -a $saveDIR
-                echo "MySQL пароль от root: $passSQL" | tee -a $saveDIR
-                echo "MySQL пароль от phpMyAdmin: $passPMA" | tee -a $saveDIR
+                echo "Пароль пользователя phpmyadmin: $passPMA" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
@@ -530,34 +514,8 @@ EOF
         2)
             clear
 
-            useEngineGP=""
-
-            while true; do
-                echo -n "Хотите настроить локацию на сервере с EngineGP? (y/n)"
-                read useEngineGP
-
-                case $useEngineGP in
-                    [Yy]*)
-                        echo -n "Введите пароль root от MySQL:"
-                        read -s userPassword
-                        echo
-                        passMySQL=$userPassword
-                        break
-                        ;;
-                    [Nn]*)
-                        passMySQL=$(pwgen -cns -1 16)
-                        break
-                        ;;
-                    *)
-                        echo "Пожалуйста, введите 'y' или 'n'."
-                        ;;
-                esac
-            done
-
-            clear
-
             passProFTPD=$(pwgen -cns -1 16)
-            
+
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if [[ " ${suppOS[@]} " =~ " ${currOS} " ]]; then
                 # Проверяем наличие репозитория nginx
@@ -634,33 +592,12 @@ EOF
                 fi
 
                 # Устанавливаем базу данных
-                if [[ "${useEngineGP,,}" == "n" ]]; then
-                    if ! dpkg-query -W -f='${Status}' "mysql-server" 2>/dev/null | grep -q "install ok installed"; then
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "mysql-server не установлен. Выполняется установка..." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        sudo debconf-set-selections <<EOF
-mysql-apt-config mysql-apt-config/select-server select mysql-8.0
-mysql-apt-config mysql-apt-config/select-tools select Enabled
-mysql-apt-config mysql-apt-config/select-preview select Disabled
-EOF
-                        sudo curl -SLO https://dev.mysql.com/get/mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo DEBIAN_FRONTEND="noninteractive" dpkg -i mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo apt-get update >> $logsINST 2>&1
-                        sudo rm mysql-apt-config_0.8.30-1_all.deb >> $logsINST 2>&1
-                        sudo debconf-set-selections <<EOF
-mysql-community-server mysql-community-server/root-pass password $passMySQL
-mysql-community-server mysql-community-server/re-root-pass password $passMySQL
-mysql-community-server mysql-server/default-auth-override select Use Strong Password Encryption (RECOMMENDED)
-EOF
-                        sudo DEBIAN_FRONTEND="noninteractive" apt-get install -y mysql-server >> $logsINST 2>&1
-                    else
-                        echo "===================================" >> $logsINST 2>&1
-                        echo "mysql-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                        echo "===================================" >> $logsINST 2>&1
-                        read -p "Нажмите Enter для завершения..."
-                        continue
-                    fi
+                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
+                    echo "===================================" >> $logsINST 2>&1
+                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
+                    echo "===================================" >> $logsINST 2>&1
+
+                    apt-get install -y mariadb-server >> $logsINST 2>&1
                 fi
 
                 # Цикл установки пакетов
@@ -704,17 +641,33 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "proftpd не установлен. Выполняется установка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
+
+                    # Устанавливаем ProFTPD и необходимые модули
                     echo "proftpd shared/proftpd/inetd_or_standalone select standalone" | debconf-set-selections
                     sudo apt-get install -y proftpd-basic proftpd-mod-mysql >> $logsINST 2>&1
+
+                    # Скачиваем конфигурационные файлы ProFTPD
                     curl -o /etc/proftpd/proftpd.conf $resURL/Components/ProFTPD/proftpd >> $logsINST 2>&1
                     curl -o /etc/proftpd/modules.conf $resURL/Components/ProFTPD/proftpd_modules >> $logsINST 2>&1
                     curl -o /etc/proftpd/sql.conf $resURL/Components/ProFTPD/proftpd_sql >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "CREATE DATABASE ftp;" >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
-                    mysql -u root -p$passMySQL -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
-                    curl -sSL $resURL/Components/ProFTPD/sqldump.sql | mysql -u root -p$passMySQL ftp >> $logsINST 2>&1
-                    sed -i 's/passwdfor/'$passMySQL'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
+
+                    # Создаем базу данных для ProFTPD
+                    sudo mysql -e "CREATE DATABASE ftp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
+
+                    # Создаем пользователя для ProFTPD и предоставляем ему все права на базу данных ftp
+                    sudo mysql -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" >> $logsINST 2>&1
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" >> $logsINST 2>&1
+
+                    # Импортируем дамп базы данных для ProFTPD
+                    curl -sSL $resURL/Components/ProFTPD/sqldump.sql | sudo mysql ftp >> $logsINST 2>&1
+
+                    # Заменяем passwdfor на реальный пароль в конфигурационном файле
+                    sed -i 's/passwdfor/'$passProFTPD'/g' /etc/proftpd/sql.conf >> $logsINST 2>&1
+
+                    # Устанавливаем права доступа на конфигурационные файлы
                     chmod -R 750 /etc/proftpd >> $logsINST 2>&1
+
+                    # Перезапускаем ProFTPD для применения изменений
                     systemctl restart proftpd >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
@@ -761,20 +714,25 @@ EOF
                     echo "===================================" >> $logsINST 2>&1
                     echo "steamcmd не настроен. Выполняется настройка..." | tee -a $logsINST
                     echo "===================================" >> $logsINST 2>&1
-                    groupmod -g 998 `cat /etc/group | grep :1000 | awk -F":" '{print $1}'` >> $logsINST 2>&1
-                    groupadd -g 1000 servers >> $logsINST 2>&1
-                    mkdir -p /path /path/cmd /path/update /path/maps >> $logsINST 2>&1
-                    chmod -R 755 /path >> $logsINST 2>&1
-                    chown root:servers /path >> $logsINST 2>&1
-                    mkdir -p /servers >> $logsINST 2>&1
-                    chmod -R 711 /servers >> $logsINST 2>&1
-                    chown root:servers /servers >> $logsINST 2>&1
-                    mkdir -p /copy >> $logsINST 2>&1
-                    chmod -R 750 /copy >> $logsINST 2>&1
-                    chown root:root /copy >> $logsINST 2>&1
-                    sudo curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
-                    tar -xzf steamcmd_linux.tar.gz -C /path/cmd >> $logsINST 2>&1
-                    rm steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo groupadd -f servers >> $logsINST 2>&1
+
+                    sudo mkdir -p /path /path/cmd /path/update /path/maps >> $logsINST 2>&1
+                    sudo chmod -R 755 /path >> $logsINST 2>&1
+                    sudo chown root:servers /path >> $logsINST 2>&1
+
+                    sudo mkdir -p /servers >> $logsINST 2>&1
+                    sudo chmod -R 711 /servers >> $logsINST 2>&1
+                    sudo chown root:servers /servers >> $logsINST 2>&1
+
+                    sudo mkdir -p /copy >> $logsINST 2>&1
+                    sudo chmod -R 750 /copy >> $logsINST 2>&1
+                    sudo chown root:root /copy >> $logsINST 2>&1
+
+                    sudo sudo curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo tar -xzf steamcmd_linux.tar.gz -C /path/cmd >> $logsINST 2>&1
+                    sudo rm steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    sudo chmod +x /path/cmd/steamcmd.sh >> $logsINST 2>&1
+                    sudo /path/cmd/steamcmd.sh +quit >> $logsINST 2>&1
                 else
                     echo "===================================" >> $logsINST 2>&1
                     echo "steamcmd уже установлен. Продолжение установки невозможно...." | tee -a $logsINST
@@ -784,11 +742,10 @@ EOF
                 fi
                 echo "===================================" | tee -a $saveDIR
                 echo "Данные локации" | tee -a $saveDIR
-                echo "SQL_Username: root" | tee -a $saveDIR
-                echo "SQL_Password: $passMySQL" | tee -a $saveDIR
+                echo "SQL_Username: ftp" | tee -a $saveDIR
+                echo "SQL_Password: $passProFTPD" | tee -a $saveDIR
                 echo "SQL_FileTP: ftp" | tee -a $saveDIR
                 echo "SQL_Port: 3306" | tee -a $saveDIR
-                echo "Password for FTP database: $passProFTPD" | tee -a $saveDIR
                 echo "===================================" | tee -a $saveDIR
                 read -p "Нажмите Enter для завершения..."
                 continue
@@ -825,13 +782,6 @@ EOF
                     mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: 1.6"
                     echo "1. Steam [Clean server]"
-                    echo "2. Build ReHLDS"
-                    echo "3. Build 8308"
-                    echo "4. Build 8196"
-                    echo "5. Build 7882"
-                    echo "6. Build 7559"
-                    echo "7. Build 6153"
-                    echo "8. Build 5787"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " cs16_choice
@@ -839,58 +789,7 @@ EOF
                     case $cs16_choice in
                         1)
                             mkdir -p /path/cs/steam 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/steam/steam.zip $gamesURL/cs/steam.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/steam/steam.zip -d /path/cs/steam/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        2)
-                            mkdir -p /path/cs/rehlds 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/rehlds/rehlds.zip $gamesURL/cs/rehlds.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/rehlds/rehlds.zip -d /path/cs/rehlds/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/rehlds/rehlds.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        3)
-                            mkdir -p /path/cs/8308 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/8308/8308.zip $gamesURL/cs/8308.zip 2>&1 | tee -a ${logsINST}
-                            sudo unzip /path/cs/8308/8308.zip -d /path/cs/8308/ 2>&1 | tee -a ${logsINST}
-                            sudo rm /path/cs/8308/8308.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        4)
-                            mkdir -p /path/cs/8196 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/8196/8196.zip $gamesURL/cs/8196.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/8196/8196.zip -d /path/cs/8196/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/8308/8308.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        5)
-                            mkdir -p /path/cs/7882 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/7882/7882.zip $gamesURL/cs/7882.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/7882/7882.zip -d /path/cs/7882/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/7882/7882.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        6)
-                            mkdir -p /path/cs/7559 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/7559/7559.zip $gamesURL/cs/7559.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/7559/7559.zip -d /path/cs/7559/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/7559/7559.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        7)
-                            mkdir -p /path/cs/6153 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/6153/6153.zip $gamesURL/cs/6153.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/6153/6153.zip -d /path/cs/6153/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/6153/6153.zip 2>&1 | tee -a ${logsINST}
-                            cs16_choice
-                            ;;
-                        8)
-                            mkdir -p /path/cs/5787 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cs/5787/5787.zip $gamesURL/cs/5787.zip 2>&1 | tee -a ${logsINST}
-                            unzip /path/cs/5787/5787.zip -d /path/cs/5787/ 2>&1 | tee -a ${logsINST}
-                            rm /path/cs/5787/5787.zip 2>&1 | tee -a ${logsINST}
+                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | tee -a ${logsINST}
                             cs16_choice
                             ;;
                         0)
@@ -972,7 +871,7 @@ EOF
                     case $csgo_choice in
                         1)
                             mkdir -p /path/csgo/steam 2>&1 | tee -a ${logsINST}
-                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/csgo/steam +app_update 740 validate +quit 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | tee -a ${logsINST}
                             csgo_choice
                             ;;
                         0)
@@ -998,7 +897,7 @@ EOF
                     case $cs2_choice in
                         1)
                             mkdir -p /path/cs2/steam 2>&1 | tee -a ${logsINST}
-                            /path/cmd/steamcmd.sh +login anonymous +force_install_dir /path/cs2/steam +app_update 730 validate +quit 2>&1 | tee -a ${logsINST}
+                            /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | tee -a ${logsINST}
                             cs2_choice
                             ;;
                         0)
@@ -1025,7 +924,30 @@ EOF
                     # Add code for installing MTA game here
                     ;;
                 10)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/rust /path/update/rust /servers/rust
+                    echo "Меню установки RUST"
+                    echo "1. Steam [Clean server]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -p "Выберите пункт меню: " rust_choice
+                    case $rust_choice in
+                        1)
+                            clear
+                            mkdir -p /path/rust/steam 2>&1 | tee -a ${logsINST}
+                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | tee -a ${logsINST}
+                            rust_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" >> $logsINST 2>&1
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a $logsINST
+                            echo "===================================" >> $logsINST 2>&1
+                            ;;
+                    esac
                     ;;
                 0)
                     choice
