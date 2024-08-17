@@ -149,11 +149,8 @@ while true; do
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий php не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
-                        # Установка используемых пакетов
-                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
-
                         # Скачиваем ключа зеркала репозитория Sury
-                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
 
                         # Устанавливаем ключа зеркала репозитория Sury
                         sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
@@ -162,8 +159,8 @@ while true; do
                         sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://mirror.enginegp.com/sury/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
 
                         # Определяем версию php по умолчанию
                         defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -177,8 +174,8 @@ while true; do
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
 
                         # Определяем версию php по умолчанию
                         defPHP=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -191,11 +188,8 @@ while true; do
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
-                        # Установка используемых пакетов
-                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
-
                         # Скачиваем ключа зеркала репозитория Sury
-                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
 
                         # Устанавливаем ключа зеркала репозитория Sury
                         sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
@@ -204,8 +198,8 @@ while true; do
                         sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
                     if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
@@ -216,13 +210,13 @@ while true; do
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 fi
 
                 # Список пакетов для установки
-                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 nginx ufw memcached screen cron)
+                pkgsLIST=(php$verPHP-fpm php$verPHP-common php$verPHP-cli php$verPHP-memcache php$verPHP-mysql php$verPHP-xml php$verPHP-mbstring php$verPHP-gd php$verPHP-imagick php$verPHP-zip php$verPHP-curl php$verPHP-ssh2 nginx mariadb-server ufw memcached screen cron)
                 pkgsPMA=(php$defPHP-fpm php$defPHP-mbstring php$defPHP-zip php$defPHP-gd php$defPHP-json php$defPHP-curl)
 
                 # Генерирование паролей и имён
@@ -316,33 +310,6 @@ while true; do
         include fastcgi_params;
     }
 }"
-
-                # Устанавливаем базу данных
-                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-
-                    apt-get install -y mariadb-server >> $logsINST 2>&1
-
-                    # Создание пользователя
-                    sudo mysql -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
-
-                    # Создание базы данных
-                    sudo mysql -e "CREATE DATABASE $dbEgpSQL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
-    
-                    # Предоставление привилегий пользователю на базу данных
-                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
-    
-                    # Применение изменений привилегий
-                    sudo mysql -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
-                else
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mariadb-server уже установлен в системе. Продолжение установки невозможно." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-                    read -p "Нажмите Enter для завершения..."
-                    continue
-                fi
 
                 # Цикл установки пакетов
                 for package in "${pkgsLIST[@]}"; do
@@ -443,13 +410,27 @@ EOF
                     # Хэширование пароля пользователя перед записью в базу данных
                     usrEgpHASH=$(php$verPHP -r "echo password_hash('$usrEgpPASS', PASSWORD_DEFAULT);") >> $logsINST 2>&1
 
-                    # Настраиваем конфигурацию панели и экспортируем базу данных
+                    # Настраиваем конфигурацию панели
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/example.com/$sysIP/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/enginegp_db/$dbEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/enginegp_usr/$usrEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/enginegp_pwd/$passEgpSQL/g" /var/www/enginegp/.env >> $logsINST 2>&1
                     sed -i "s/ENGINEGPHASH/$(echo "$usrEgpHASH" | sed 's/[\/&]/\\&/g')/g" /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
+
+                    # Создание пользователя
+                    sudo mysql -e "CREATE USER '$usrEgpSQL'@'localhost' IDENTIFIED BY '$passEgpSQL';" >> $logsINST 2>&1
+
+                    # Создание базы данных
+                    sudo mysql -e "CREATE DATABASE $dbEgpSQL CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >> $logsINST 2>&1
+    
+                    # Предоставление привилегий пользователю на базу данных
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSQL.* TO '$usrEgpSQL'@'localhost';" >> $logsINST 2>&1
+    
+                    # Применение изменений привилегий
+                    sudo mysql -e "FLUSH PRIVILEGES;" >> $logsINST 2>&1
+
+                    # Экспорт базы данных
                     sudo mysql -u $usrEgpSQL -p$passEgpSQL $dbEgpSQL < /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                     rm /var/www/enginegp/enginegp.sql >> $logsINST 2>&1
                 else
@@ -524,11 +505,8 @@ EOF
                         echo "===================================" >> $logsINST 2>&1
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
-                        # Установка используемых пакетов
-                        sudo apt-get -y install lsb-release ca-certificates curl >> $logsINST 2>&1
-
                         # Скачиваем ключа зеркала репозитория Sury
-                        sudo curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
+                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
 
                         # Устанавливаем ключа зеркала репозитория Sury
                         sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb >> $logsINST 2>&1
@@ -537,8 +515,8 @@ EOF
                         sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 else
                     if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
@@ -549,8 +527,8 @@ EOF
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y >> $logsINST 2>&1
 
                         # Обновление таблиц и пакетов
-                        apt-get -y update >> $logsINST 2>&1
-                        apt-get -y upgrade >> $logsINST 2>&1
+                        sudo apt-get -y update >> $logsINST 2>&1
+                        sudo apt-get -y upgrade >> $logsINST 2>&1
                     fi
                 fi
 
@@ -579,7 +557,7 @@ EOF
     }
 }"
 
-                pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx)
+                pkgsLOC=(glibc-source lib32z1 libbabeltrace1 libc6-dbg libdw1 lib32stdc++6 libreadline8 lib32gcc-s1 screen tcpdump lsof qstat gdb-minimal ntpdate gcc-multilib iptables default-jdk nginx mariadb-server)
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" >> $logsINST 2>&1
@@ -588,16 +566,7 @@ EOF
                     sudo dpkg --add-architecture i386 >> $logsINST 2>&1
 
                     # Обновление таблиц
-                    apt-get -y update >> $logsINST 2>&1
-                fi
-
-                # Устанавливаем базу данных
-                if ! dpkg-query -W -f='${Status}' "mariadb-server" 2>/dev/null | grep -q "install ok installed"; then
-                    echo "===================================" >> $logsINST 2>&1
-                    echo "mariadb-server не установлен. Выполняется установка..." | tee -a $logsINST
-                    echo "===================================" >> $logsINST 2>&1
-
-                    apt-get install -y mariadb-server >> $logsINST 2>&1
+                    sudo apt-get -y update >> $logsINST 2>&1
                 fi
 
                 # Цикл установки пакетов
@@ -607,7 +576,7 @@ EOF
                         echo "===================================" >> $logsINST 2>&1
                         echo "$package не установлен. Выполняется установка..." | tee -a $logsINST
                         echo "===================================" >> $logsINST 2>&1
-                        apt-get install -y "$package" >> $logsINST 2>&1
+                        sudo apt-get install -y "$package" >> $logsINST 2>&1
                     fi
                 done
 
@@ -728,7 +697,7 @@ EOF
                     sudo chmod -R 750 /copy >> $logsINST 2>&1
                     sudo chown root:root /copy >> $logsINST 2>&1
 
-                    sudo sudo curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
+                    curl -SL -o steamcmd_linux.tar.gz http://media.steampowered.com/client/steamcmd_linux.tar.gz >> $logsINST 2>&1
                     sudo tar -xzf steamcmd_linux.tar.gz -C /path/cmd >> $logsINST 2>&1
                     sudo rm steamcmd_linux.tar.gz >> $logsINST 2>&1
                     sudo chmod +x /path/cmd/steamcmd.sh >> $logsINST 2>&1
@@ -781,7 +750,7 @@ EOF
                     clear
                     mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: 1.6"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " cs16_choice
@@ -807,7 +776,7 @@ EOF
                     clear
                     mkdir -p /path/cssold /path/update/cssold /path/maps/cssold /servers/cssold >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: Source v34"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " css34_choice
@@ -815,7 +784,7 @@ EOF
                     case $css34_choice in
                         1)
                             mkdir -p /path/cssold/steam 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a ${logsINST}
+                            curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a ${logsINST}
                             sudo unzip /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a ${logsINST}
                             sudo rm /path/cssold/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
                             css34_choice
@@ -835,7 +804,7 @@ EOF
                     clear
                     mkdir -p /path/css /path/update/css /path/maps/css /servers/css >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: Source"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " css_choice
@@ -843,7 +812,7 @@ EOF
                     case $css_choice in
                         1)
                             mkdir -p /path/css/steam 2>&1 | tee -a ${logsINST}
-                            sudo curl -SL -o /path/css/steam/steam.zip $gamesURL/css/steam.zip 2>&1 | tee -a ${logsINST}
+                            curl -SL -o /path/css/steam/steam.zip $gamesURL/css/steam.zip 2>&1 | tee -a ${logsINST}
                             sudo unzip /path/css/steam/steam.zip -d /path/css/steam/ 2>&1 | tee -a ${logsINST}
                             sudo rm /path/css/steam/steam.zip | tee -a $logsINST 2>&1 | tee -a ${logsINST}
                             css_choice
@@ -863,7 +832,7 @@ EOF
                     clear
                     mkdir -p /path/csgo /path/update/csgo /path/maps/csgo /servers/csgo >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: GO"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " csgo_choice
@@ -889,7 +858,7 @@ EOF
                     clear
                     mkdir -p /path/cs2 /path/update/cs2 /path/maps/cs2 /servers/cs2 >> $logsINST 2>&1
                     echo "Меню установки Counter-Strike: 2"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " cs2_choice
@@ -927,7 +896,7 @@ EOF
                     clear
                     mkdir -p /path/rust /path/update/rust /servers/rust
                     echo "Меню установки RUST"
-                    echo "1. Steam [Clean server]"
+                    echo "1. Steam"
                     echo "0. Вернуться в предыдущее меню"
 
                     read -p "Выберите пункт меню: " rust_choice
