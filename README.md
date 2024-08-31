@@ -7,7 +7,7 @@
 - **GNU/Linux:** Debian 11, 12
 - **GNU/Linux:** Ubuntu 22.04, 24.04
 > [!IMPORTANT]
-> The architecture and bit depth of x86_64 are required
+> The architecture and bit depth of x86_64 are required.
 ## Starting the auto installer:
 **Update indexes and packages**
 ```bash
@@ -42,7 +42,7 @@ chmod +x ./Autoinstall/install.sh
 ./Autoinstall/install.sh --php 7.4
 ```
 > [!NOTE]
-> Instead of 7.4, you need to substitute the desired php version;
+> Instead of 7.4, you need to substitute the desired php version;\
 > Supported php versions: 7.4, 8.0, 8.1, 8.2
 
 **Selecting the working branch of the panel**
@@ -50,6 +50,6 @@ chmod +x ./Autoinstall/install.sh
 ./Autoinstall/install.sh --branch main
 ```
 > [!NOTE]
-> main - the current stable version;
-> beta - current beta version;
+> main - the current stable version;\
+> beta - current beta version;\
 > develop - future beta version.
