@@ -31,7 +31,7 @@ saveDir="/root/enginegp.cfg"
 sysUpdate
 
 # Установка начальных пакетов.
-pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git")
+pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git" "jq")
 
 # Цикл установки пакетов
 for package in "${pkgsReq[@]}"; do
@@ -59,9 +59,6 @@ for os in "${suppOs[@]}"; do
         break
     fi
 done
-
-# Файловый репозиторий
-resUrl="https://resources.enginegp.com"
 
 # Проверка аргументов командной строки
 if [ $# -gt 0 ]; then
@@ -96,8 +93,8 @@ if [ $# -gt 0 ]; then
             *)
                 # Неизвестный аргумент, вывести справку и выйти
                 clear
-                echo "Использование: ./install.sh --php 7.4 --ip 192.168.1.1 --branch main"
-                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 7.4"
+                echo "Использование: ./install.sh --php 8.2 --ip 192.168.1.1 --branch main"
+                echo "  --php версия: установить указанную версию PHP. Формат должен быть: 8.2"
                 echo "  --ip IP-адрес: использовать указанный IP-адрес. Формат должен быть: 192.168.1.1"
                 echo "  --branch ветка: использовать указаную ветку GIT. Формат должен быть: main"
                 exit 1
@@ -107,7 +104,7 @@ if [ $# -gt 0 ]; then
 
     # Если версия PHP не выбрана, использовать PHP 7.4 по умолчанию
     if [ -z "$verPhp" ]; then
-        verPhp="7.4"
+        verPhp="8.2"
     fi
 
     # Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
@@ -121,7 +118,7 @@ if [ $# -gt 0 ]; then
     fi
 else
     # Если нет аргументов, задаём по умолчанию
-    verPhp="7.4"
+    verPhp="8.2"
     sysIp=$(curl -s ipinfo.io/ip)
     gitEgp="main"
 fi
@@ -228,7 +225,7 @@ while true; do
 
                 # Генерирование паролей и имён
                 passPma=$(pwgen -cns -1 16)
-                usrEgpSql="enginegp_$(pwgen -cns -1 8)"
+                userEgpSql="enginegp_$(pwgen -cns -1 8)"
                 dbEgpSql="enginegp_$(pwgen -1 8)"
                 passEgpSql=$(pwgen -cns -1 16)
                 usrEgpPass=$(pwgen -cns -1 16)
@@ -420,24 +417,24 @@ EOF
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/example.com/$sysIp/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/enginegp_db/$dbEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/enginegp_usr/$usrEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/enginegp_usr/$userEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/enginegp_pwd/$passEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/ENGINEGPHASH/$(echo "$usrEgpHASH" | sed 's/[\/&]/\\&/g')/g" /var/www/enginegp/enginegp.sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создание пользователя
-                    sudo mysql -e "CREATE USER '$usrEgpSql'@'localhost' IDENTIFIED BY '$passEgpSql';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mysql -e "CREATE USER '$userEgpSql'@'localhost' IDENTIFIED BY '$passEgpSql';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создание базы данных
                     sudo mysql -e "CREATE DATABASE $dbEgpSql CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
     
                     # Предоставление привилегий пользователю на базу данных
-                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSql.* TO '$usrEgpSql'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbEgpSql.* TO '$userEgpSql'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
     
                     # Применение изменений привилегий
                     sudo mysql -e "FLUSH PRIVILEGES;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Экспорт базы данных
-                    sudo cat /var/www/enginegp/enginegp.sql | sudo mysql -u "$usrEgpSql" -p"$passEgpSql" "$dbEgpSql" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo cat /var/www/enginegp/enginegp.sql | sudo mysql -u "$userEgpSql" -p"$passEgpSql" "$dbEgpSql" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     rm /var/www/enginegp/enginegp.sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
@@ -484,7 +481,7 @@ EOF
                 echo "MySQL данные для EngineGP" | tee -a $saveDir
                 echo "Ссылка на phpMyAdmin: http://$sysIp:9090/" | tee -a $saveDir
                 echo "База данных: $dbEgpSql" | tee -a $saveDir
-                echo "Пользователь: $usrEgpSql" | tee -a $saveDir
+                echo "Пользователь: $userEgpSql" | tee -a $saveDir
                 echo "Пароль: $passEgpSql" | tee -a $saveDir
                 echo "===================================" | tee -a $saveDir
                 echo "Системные данные MySQL" | tee -a $saveDir
@@ -502,6 +499,8 @@ EOF
         2)
             clear
 
+            dbProFTPD="ftp_$(pwgen -cns -1 8)"
+            userProFTPD="ftp_$(pwgen -cns -1 8)"
             passProFTPD=$(pwgen -cns -1 16)
 
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
@@ -623,22 +622,26 @@ EOF
                     sudo apt-get install -y proftpd-basic proftpd-mod-mysql 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Скачиваем конфигурационные файлы ProFTPD
-                    curl -o /etc/proftpd/proftpd.conf $resUrl/Components/ProFTPD/proftpd 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    curl -o /etc/proftpd/modules.conf $resUrl/Components/ProFTPD/proftpd_modules 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    curl -o /etc/proftpd/sql.conf $resUrl/Components/ProFTPD/proftpd_sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    curl -s https://api.github.com/repos/EngineGPDev/ProFTPD/releases?per_page=1\&prerelease=false | jq -r '.[0].zipball_url' | xargs -n 1 curl -L -o /tmp/proftpd.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo unzip -o /tmp/proftpd.zip -d /tmp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/EngineGPDev-ProFTPD-*/proftpd.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/EngineGPDev-ProFTPD-*/modules.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/EngineGPDev-ProFTPD-*/sql.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создаем базу данных для ProFTPD
-                    sudo mysql -e "CREATE DATABASE ftp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mysql -e "CREATE DATABASE $dbProFTPD CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                    # Создаем пользователя для ProFTPD и предоставляем ему все права на базу данных ftp
-                    sudo mysql -e "CREATE USER 'ftp'@'localhost' IDENTIFIED BY '$passProFTPD';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    # Создаем пользователя для ProFTPD и предоставляем ему все права на базу данных
+                    sudo mysql -e "CREATE USER '$userProFTPD'@'localhost' IDENTIFIED BY '$passProFTPD';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo mysql -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Импортируем дамп базы данных для ProFTPD
-                    curl -sSL $resUrl/Components/ProFTPD/sqldump.sql | sudo mysql ftp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo cat /tmp/EngineGPDev-ProFTPD-*/proftpd.sql | sudo mysql -u "$userProFTPD" -p"$passProFTPD" "$dbProFTPD" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                    # Заменяем passwdfor на реальный пароль в конфигурационном файле
-                    sed -i 's/passwdfor/'"$passProFTPD"'/g' /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    # Вносим даннык в конфигурационный файл
+                    sed -i 's/__FTP_DATABASE__/'"$dbProFTPD"'/g' /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i 's/__FTP_USER__/'"$userProFTPD"'/g' /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i 's/__FTP_PASSWORD__/'"$passProFTPD"'/g' /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Устанавливаем права доступа на конфигурационные файлы
                     chmod -R 750 /etc/proftpd 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -718,10 +721,10 @@ EOF
                 fi
                 echo "===================================" | tee -a $saveDir
                 echo "Данные локации" | tee -a $saveDir
-                echo "SQL_Username: ftp" | tee -a $saveDir
-                echo "SQL_Password: $passProFTPD" | tee -a $saveDir
-                echo "SQL_FileTP: ftp" | tee -a $saveDir
-                echo "SQL_Port: 3306" | tee -a $saveDir
+                echo "Пользователь ProFTPD: $userProFTPD" | tee -a $saveDir
+                echo "Пароль ProFTPD: $passProFTPD" | tee -a $saveDir
+                echo "База данных ProFTPD: $dbProFTPD" | tee -a $saveDir
+                echo "Порт базы данных: 3306" | tee -a $saveDir
                 echo "===================================" | tee -a $saveDir
                 read -rp "Нажмите Enter для завершения..."
                 continue
@@ -792,7 +795,7 @@ EOF
                         1)
                             mkdir -p /path/cssold/steam 2>&1 | tee -a "${logsInst}"
                             curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a "${logsInst}"
-                            sudo unzip /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a "${logsInst}"
+                            sudo unzip -o /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a "${logsInst}"
                             sudo rm /path/cssold/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
                             css34_choice
                             ;;
@@ -820,7 +823,7 @@ EOF
                         1)
                             mkdir -p /path/css/steam 2>&1 | tee -a "${logsInst}"
                             curl -SL -o /path/css/steam/steam.zip $gamesURL/css/steam.zip 2>&1 | tee -a "${logsInst}"
-                            sudo unzip /path/css/steam/steam.zip -d /path/css/steam/ 2>&1 | tee -a "${logsInst}"
+                            sudo unzip -o /path/css/steam/steam.zip -d /path/css/steam/ 2>&1 | tee -a "${logsInst}"
                             sudo rm /path/css/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
                             css_choice
                             ;;
