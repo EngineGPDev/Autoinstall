@@ -625,15 +625,15 @@ EOF
                     curl -s https://api.github.com/repos/EngineGPDev/ProFTPD/releases?per_page=1\&prerelease=false | jq -r '.[0].zipball_url' | xargs -n 1 curl -L -o /tmp/proftpd.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo unzip -o /tmp/proftpd.zip -d /tmp 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo mv /tmp/EngineGPDev-ProFTPD-*/proftpd.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mv /tmp/EngineGPDev-ProFTPD-*/modules.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mv /tmp/EngineGPDev-ProFTPD-*/sql.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/EngineGPDev-ProFTPD-*/modules.conf /etc/proftpd/modules.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/EngineGPDev-ProFTPD-*/sql.conf /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создаем базу данных для ProFTPD
                     sudo mysql -e "CREATE DATABASE $dbProFTPD CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создаем пользователя для ProFTPD и предоставляем ему все права на базу данных
                     sudo mysql -e "CREATE USER '$userProFTPD'@'localhost' IDENTIFIED BY '$passProFTPD';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mysql -e "GRANT ALL PRIVILEGES ON ftp . * TO 'ftp'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mysql -e "GRANT ALL PRIVILEGES ON $dbProFTPD . * TO '$userProFTPD'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Импортируем дамп базы данных для ProFTPD
                     sudo cat /tmp/EngineGPDev-ProFTPD-*/proftpd.sql | sudo mysql -u "$userProFTPD" -p"$passProFTPD" "$dbProFTPD" 2>&1 | sudo tee -a "$logsInst" > /dev/null
