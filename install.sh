@@ -225,6 +225,7 @@ while true; do
 
                 # Генерирование паролей и имён
                 passPma=$(pwgen -cns -1 16)
+                cronKey=$(pwgen -cns -1 12)
                 userEgpSql="enginegp_$(pwgen -cns -1 8)"
                 dbEgpSql="enginegp_$(pwgen -1 8)"
                 passEgpSql=$(pwgen -cns -1 16)
@@ -313,6 +314,21 @@ while true; do
         include fastcgi_params;
     }
 }"
+                # Задачи CRON
+                cronTasks="#
+# Default Crontab by EngineGP
+* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_admins'
+* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_down'
+*/2 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers'
+*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_stop'
+*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_copy'
+0 */1 * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_hour'
+0 0 */1 * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_day'
+*/10 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_help'
+*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_server_overdue'
+*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey preparing_web_delete'
+# Default Crontab by EngineGP
+#"
 
                 # Цикл установки пакетов
                 for package in "${pkgsList[@]}"; do
@@ -416,6 +432,7 @@ EOF
                     # Настраиваем конфигурацию панели
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/example.com/$sysIp/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/enginegp_ck/$cronKey/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/enginegp_db/$dbEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/enginegp_usr/$userEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/enginegp_pwd/$passEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -437,6 +454,9 @@ EOF
                     sudo cat /var/www/enginegp/enginegp.sql | sudo mysql -u "$userEgpSql" -p"$passEgpSql" "$dbEgpSql" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     rm /var/www/enginegp/enginegp.sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
+
+                    # Устанавливаем задачи CRON
+                    (sudo crontab -l; echo "$cronTasks") | sudo crontab - 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a "$logsInst"
