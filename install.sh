@@ -563,7 +563,7 @@ EOF
     }
 }"
 
-                pkgsLOC=("glibc-source" "lib32z1" "libbabeltrace1" "libc6-dbg" "libdw1" "lib32stdc++6" "libreadline8" "lib32gcc-s1" "screen" "tcpdump" "lsof" "qstat" "gdb-minimal" "ntpdate" "gcc-multilib" "iptables" "default-jdk" "nginx" "mariadb-server")
+                pkgsLOC=("glibc-source" "lib32z1" "libbabeltrace1" "libc6-dbg" "libdw1" "lib32stdc++6" "libreadline8" "lib32gcc-s1" "libtinfo5:i386" "screen" "tcpdump" "lsof" "qstat" "gdb-minimal" "ntpdate" "gcc-multilib" "iptables" "default-jdk" "nginx" "mariadb-server")
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -822,9 +822,7 @@ EOF
                     case $css_choice in
                         1)
                             mkdir -p /path/css/steam 2>&1 | tee -a "${logsInst}"
-                            curl -SL -o /path/css/steam/steam.zip $gamesURL/css/steam.zip 2>&1 | tee -a "${logsInst}"
-                            sudo unzip -o /path/css/steam/steam.zip -d /path/css/steam/ 2>&1 | tee -a "${logsInst}"
-                            sudo rm /path/css/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
+                            /path/cmd/steamcmd.sh +force_install_dir /path/css/steam +login anonymous +app_update 232330 validate +quit 2>&1 | tee -a "${logsInst}"
                             css_choice
                             ;;
                         0)
