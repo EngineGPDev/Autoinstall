@@ -220,7 +220,7 @@ while true; do
                 fi
 
                 # Список пакетов для установки
-                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "nginx" "mariadb-server" "ufw" "memcached" "screen" "cron")
+                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "php$verPhp-gmp" "nginx" "mariadb-server" "ufw" "memcached" "screen" "cron")
                 pkgsPma=("php$defPhp-fpm" "php$defPhp-mbstring" "php$defPhp-zip" "php$defPhp-gd" "php$defPhp-json" "php$defPhp-curl")
 
                 # Генерирование паролей и имён
