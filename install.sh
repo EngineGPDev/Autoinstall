@@ -15,7 +15,7 @@ sysUpdate (){
     echo "Обновление системы..." | tee -a "$logsInst"
     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
     apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-    apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+    apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
 }
 
 # Очистка экрана перед установкой
@@ -164,7 +164,7 @@ while true; do
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Определяем версию php по умолчанию
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -179,7 +179,7 @@ while true; do
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Определяем версию php по умолчанию
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -203,7 +203,7 @@ while true; do
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
                     if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
@@ -215,12 +215,12 @@ while true; do
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 fi
 
                 # Список пакетов для установки
-                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "php$verPhp-ssh2" "nginx" "mariadb-server" "ufw" "memcached" "screen" "cron")
+                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "nginx" "mariadb-server" "ufw" "memcached" "screen" "cron")
                 pkgsPma=("php$defPhp-fpm" "php$defPhp-mbstring" "php$defPhp-zip" "php$defPhp-gd" "php$defPhp-json" "php$defPhp-curl")
 
                 # Генерирование паролей и имён
@@ -419,9 +419,24 @@ EOF
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     echo "enginegp не установлен. Выполняется установка..." | tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    # Создание временного каталога
+                    sudo mkdir -p /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                    # Клонирование репозитория
-                    sudo git clone --branch "$gitEgp" https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    # Загрузка EngineGP
+                    if [ "$gitEgp" == "develop" ]; then
+                        sudo git clone --branch "$gitEgp" https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null                        
+                    elif [ "$gitEgp" == "beta" ]; then
+                        curl -s https://api.github.com/repos/EngineGPDev/EngineGP/releases | jq -r 'map(select(.prerelease == true)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/enginegp.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo unzip -o /tmp/enginegp/enginegp.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo mv /tmp/enginegp/EngineGPDev-EngineGP-* /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    else
+                        curl -s https://api.github.com/repos/EngineGPDev/EngineGP/releases | jq -r 'map(select(.prerelease == false)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/enginegp.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo unzip -o /tmp/enginegp/enginegp.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo mv /tmp/enginegp/EngineGPDev-EngineGP-* /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    fi
+
+                    # Очищаем временную папку
+                    sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Установка зависимостей composer
                     sudo COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -451,12 +466,12 @@ EOF
                     sudo mysql -e "FLUSH PRIVILEGES;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Экспорт базы данных
-                    sudo cat /var/www/enginegp/enginegp.sql | sudo mysql -u "$userEgpSql" -p"$passEgpSql" "$dbEgpSql" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    { sudo cat /var/www/enginegp/enginegp.sql | sudo mysql -u "$userEgpSql" -p"$passEgpSql" "$dbEgpSql"; } 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     rm /var/www/enginegp/enginegp.sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Устанавливаем задачи CRON
-                    (sudo crontab -l; echo "$cronTasks") | sudo crontab - 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    { (sudo crontab -l; echo "$cronTasks") | sudo crontab -; } 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a "$logsInst"
@@ -542,7 +557,7 @@ EOF
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
                     if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
@@ -554,7 +569,7 @@ EOF
 
                         # Обновление таблиц и пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 fi
 
@@ -641,12 +656,15 @@ EOF
                     echo "proftpd shared/proftpd/inetd_or_standalone select standalone" | debconf-set-selections
                     sudo apt-get install -y proftpd-basic proftpd-mod-mysql 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
+                    # Создание временного каталога
+                    sudo mkdir -p /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+
                     # Скачиваем конфигурационные файлы ProFTPD
-                    curl -s https://api.github.com/repos/EngineGPDev/ProFTPD/releases?per_page=1\&prerelease=false | jq -r '.[0].zipball_url' | xargs -n 1 curl -L -o /tmp/proftpd.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo unzip -o /tmp/proftpd.zip -d /tmp 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mv /tmp/EngineGPDev-ProFTPD-*/proftpd.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mv /tmp/EngineGPDev-ProFTPD-*/modules.conf /etc/proftpd/modules.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sudo mv /tmp/EngineGPDev-ProFTPD-*/sql.conf /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    curl -s https://api.github.com/repos/EngineGPDev/ProFTPD/releases | jq -r 'map(select(.prerelease == false)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/proftpd.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo unzip -o /tmp/enginegp/proftpd.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/enginegp/EngineGPDev-ProFTPD-*/proftpd.conf /etc/proftpd/proftpd.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/enginegp/EngineGPDev-ProFTPD-*/modules.conf /etc/proftpd/modules.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sudo mv /tmp/enginegp/EngineGPDev-ProFTPD-*/sql.conf /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создаем базу данных для ProFTPD
                     sudo mysql -e "CREATE DATABASE $dbProFTPD CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -656,7 +674,10 @@ EOF
                     sudo mysql -e "GRANT ALL PRIVILEGES ON $dbProFTPD . * TO '$userProFTPD'@'localhost';" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Импортируем дамп базы данных для ProFTPD
-                    sudo cat /tmp/EngineGPDev-ProFTPD-*/proftpd.sql | sudo mysql -u "$userProFTPD" -p"$passProFTPD" "$dbProFTPD" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    { sudo cat /tmp/enginegp/EngineGPDev-ProFTPD-*/proftpd.sql | sudo mysql -u "$userProFTPD" -p"$passProFTPD" "$dbProFTPD"; } 2>&1 | sudo tee -a "$logsInst" > /dev/null
+
+                    # Очищаем временную папку
+                    sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Вносим даннык в конфигурационный файл
                     sed -i 's/__FTP_DATABASE__/'"$dbProFTPD"'/g' /etc/proftpd/sql.conf 2>&1 | sudo tee -a "$logsInst" > /dev/null
