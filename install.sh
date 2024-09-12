@@ -939,7 +939,30 @@ EOF
                     # Add code for installing MTA game here
                     ;;
                 9)
-                    # Add code for installing MTA game here
+                    clear
+                    mkdir -p /path/mc /path/update/mc /path/maps/mc /servers/mc 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    echo "Меню установки Minecraft"
+                    echo "1. PaperSpigot 1.20.4 [Java 17]"
+                    echo "0. Вернуться в предыдущее меню"
+
+                    read -rp "Выберите пункт меню: " mc_choice
+
+                    case $mc_choice in
+                        1)
+                            mkdir -p /path/mc/paper1204 2>&1 | tee -a "${logsInst}"
+                            curl -SL -o /path/mc/paper1204/start.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/497/downloads/paper-1.20.4-497.jar 2>&1 | tee -a "${logsInst}"
+                            mc_choice
+                            ;;
+                        0)
+                            game_choice
+                            ;;
+                        *)
+                            clear
+                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            ;;
+                    esac
                     ;;
                 10)
                     clear
