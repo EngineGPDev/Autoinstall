@@ -798,200 +798,267 @@ EOF
 
             case $game_choice in
                 1)
-                    clear
-                    mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Counter-Strike: 1.6"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " cs16_choice
-
-                    case $cs16_choice in
-                        1)
-                            mkdir -p /path/cs/steam 2>&1 | tee -a "${logsInst}"
-                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | tee -a "${logsInst}"
-                            cs16_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    crmp_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Counter-Strike: 1.6"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " cs16_choice
+
+                            case $cs16_choice in
+                                1)
+                                    mkdir -p /path/cs/steam 2>&1 | tee -a "${logsInst}"
+                                    sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
                     ;;
                 2)
-                    clear
-                    mkdir -p /path/cssold /path/update/cssold /path/maps/cssold /servers/cssold 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Counter-Strike: Source v34"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " css34_choice
-
-                    case $css34_choice in
-                        1)
-                            mkdir -p /path/cssold/steam 2>&1 | tee -a "${logsInst}"
-                            curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a "${logsInst}"
-                            sudo unzip -o /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a "${logsInst}"
-                            sudo rm /path/cssold/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
-                            css34_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    cssold_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/cssold /path/update/cssold /path/maps/cssold /servers/cssold 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Counter-Strike: Source v34"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " css34_choice
+
+                            case $css34_choice in
+                                1)
+                                    mkdir -p /path/cssold/steam 2>&1 | tee -a "${logsInst}"
+                                    curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a "${logsInst}"
+                                    sudo unzip -o /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a "${logsInst}"
+                                    sudo rm /path/cssold/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    cssold_menu
                     ;;
                 3)
-                    clear
-                    mkdir -p /path/css /path/update/css /path/maps/css /servers/css 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Counter-Strike: Source"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " css_choice
-
-                    case $css_choice in
-                        1)
-                            mkdir -p /path/css/steam 2>&1 | tee -a "${logsInst}"
-                            /path/cmd/steamcmd.sh +force_install_dir /path/css/steam +login anonymous +app_update 232330 validate +quit 2>&1 | tee -a "${logsInst}"
-                            css_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    css_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/css /path/update/css /path/maps/css /servers/css 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Counter-Strike: Source"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " css_choice
+
+                            case $css_choice in
+                                1)
+                                    mkdir -p /path/css/steam 2>&1 | tee -a "${logsInst}"
+                                    /path/cmd/steamcmd.sh +force_install_dir /path/css/steam +login anonymous +app_update 232330 validate +quit 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    css_menu
                     ;;
                 4)
-                    clear
-                    mkdir -p /path/csgo /path/update/csgo /path/maps/csgo /servers/csgo 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Counter-Strike: GO"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " csgo_choice
-
-                    case $csgo_choice in
-                        1)
-                            mkdir -p /path/csgo/steam 2>&1 | tee -a "${logsInst}"
-                            /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | tee -a "${logsInst}"
-                            csgo_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    csgo_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/csgo /path/update/csgo /path/maps/csgo /servers/csgo 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Counter-Strike: GO"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " csgo_choice
+
+                            case $csgo_choice in
+                                1)
+                                    mkdir -p /path/csgo/steam 2>&1 | tee -a "${logsInst}"
+                                    /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    csgo_menu
                     ;;
                 5)
-                    clear
-                    mkdir -p /path/cs2 /path/update/cs2 /path/maps/cs2 /servers/cs2 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Counter-Strike: 2"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " cs2_choice
-
-                    case $cs2_choice in
-                        1)
-                            mkdir -p /path/cs2/steam 2>&1 | tee -a "${logsInst}"
-                            /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | tee -a "${logsInst}"
-                            cs2_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    cs2_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/cs2 /path/update/cs2 /path/maps/cs2 /servers/cs2 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Counter-Strike: 2"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " cs2_choice
+
+                            case $cs2_choice in
+                                1)
+                                    mkdir -p /path/cs2/steam 2>&1 | tee -a "${logsInst}"
+                                    /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    cs2_menu
                     ;;
                 6)
                     # Add code for installing MTA game here
                     ;;
                 7)
-                    # Add code for installing MTA game here
+                    crmp_menu() {
+                        while true; do
+                            clear
+                            mkdir -p /path/crmp /path/update/crmp /path/maps/crmp /servers/crmp /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки GTA: CRMP"
+                            echo "1. 0.3e Rev C3"
+                            echo "2. 0.3.7 Rev C5"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " crmp_choice
+
+                            case $crmp_choice in
+                                1)
+                                    curl -SL -o /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c3-linux.tar.gz 2>&1 | tee -a "${logsInst}"
+                                    sudo tar -xzf /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
+                                    sudo mv /tmp/enginegp/srv-cr-mp-c3-linux /path/crmp/03eC3 2>&1 | tee -a "$logsInst"
+                                    ;;
+                                2)
+                                    curl -SL -o /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c5-linux.tar.gz 2>&1 | tee -a "${logsInst}"
+                                    sudo tar -xzf /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
+                                    sudo mv /tmp/enginegp/samp03 /path/crmp/037C5 2>&1 | tee -a "$logsInst"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+                    crmp_menu
                     ;;
                 8)
                     # Add code for installing MTA game here
                     ;;
                 9)
-                    clear
-                    mkdir -p /path/mc /path/update/mc /path/maps/mc /servers/mc 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Меню установки Minecraft"
-                    echo "1. PaperSpigot 1.20.4 [Java 17]"
-                    echo "0. Вернуться в предыдущее меню"
-
-                    read -rp "Выберите пункт меню: " mc_choice
-
-                    case $mc_choice in
-                        1)
-                            mkdir -p /path/mc/paper1204 2>&1 | tee -a "${logsInst}"
-                            curl -SL -o /path/mc/paper1204/start.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/497/downloads/paper-1.20.4-497.jar 2>&1 | tee -a "${logsInst}"
-                            mc_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
+                    mc_menu() {
+                        while true; do
                             clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            mkdir -p /path/mc /path/update/mc /path/maps/mc /servers/mc 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки Minecraft"
+                            echo "1. PaperSpigot 1.20.4 [Java 17]"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " mc_choice
+
+                            case $mc_choice in
+                                1)
+                                    mkdir -p /path/mc/paper1204 2>&1 | tee -a "${logsInst}"
+                                    curl -SL -o /path/mc/paper1204/start.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/497/downloads/paper-1.20.4-497.jar 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    mc_menu
                     ;;
                 10)
-                    clear
-                    mkdir -p /path/rust /path/update/rust /servers/rust
-                    echo "Меню установки RUST"
-                    echo "1. Steam"
-                    echo "0. Вернуться в предыдущее меню"
+                    rust_menu() {
+                        while true; do
+                            clear
+                            mkdir -p /path/rust /path/update/rust /servers/rust
+                            echo "Меню установки RUST"
+                            echo "1. Steam"
+                            echo "0. Вернуться в предыдущее меню"
 
-                    read -rp "Выберите пункт меню: " rust_choice
-                    case $rust_choice in
-                        1)
-                            clear
-                            mkdir -p /path/rust/steam 2>&1 | tee -a "${logsInst}"
-                            sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | tee -a "${logsInst}"
-                            rust_choice
-                            ;;
-                        0)
-                            game_choice
-                            ;;
-                        *)
-                            clear
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
-                            echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                            ;;
-                    esac
+                            read -rp "Выберите пункт меню: " rust_choice
+                            case $rust_choice in
+                                1)
+                                    clear
+                                    mkdir -p /path/rust/steam 2>&1 | tee -a "${logsInst}"
+                                    sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | tee -a "${logsInst}"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    rust_menu
                     ;;
                 0)
-                    choice
+                    break
                     ;;
                 *)
                     clear
