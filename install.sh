@@ -969,6 +969,7 @@ EOF
                                         curl -SL -o /tmp/enginegp/samp037svr_R2-2-1.tar.gz https://gta-multiplayer.cz/downloads/samp037svr_R2-2-1.tar.gz 2>&1 | tee -a "${logsInst}"
                                         sudo tar -xzf /tmp/enginegp/samp037svr_R2-2-1.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
                                         sudo mv /tmp/enginegp/samp03 /path/samp/037R2 2>&1 | tee -a "$logsInst"
+                                        sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
                                         break
@@ -1002,11 +1003,13 @@ EOF
                                         curl -SL -o /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c3-linux.tar.gz 2>&1 | tee -a "${logsInst}"
                                         sudo tar -xzf /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
                                         sudo mv /tmp/enginegp/srv-cr-mp-c3-linux /path/crmp/03eC3 2>&1 | tee -a "$logsInst"
+                                        sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     2)
                                         curl -SL -o /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c5-linux.tar.gz 2>&1 | tee -a "${logsInst}"
                                         sudo tar -xzf /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
                                         sudo mv /tmp/enginegp/samp03 /path/crmp/037C5 2>&1 | tee -a "$logsInst"
+                                        sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
                                         break
@@ -1040,6 +1043,7 @@ EOF
                                         sudo tar -xzf /tmp/enginegp/multitheftauto_linux_x64.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
                                         sudo mv /tmp/enginegp/multitheftauto_linux_x64 /path/mta/160 2>&1 | tee -a "$logsInst"
                                         sudo mv /path/mta/160/mta-server64 /path/mta/160/mta-server 2>&1 | tee -a "$logsInst"
+                                        sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
                                         break
