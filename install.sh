@@ -136,7 +136,7 @@ while true; do
     echo "Меню установки EngineGP:"
     echo "1. Установка панели управления"
     echo "2. Настройка сервера под игры"
-    echo "3. Установка игровых сборок"
+    echo "3. Установка игровых серверов"
     echo "4. Системная информация"
     echo "0. Выход"
 
@@ -781,7 +781,7 @@ EOF
             # Игровой репозиторий
             gamesURL="http://gs.enginegp.ru"
 
-            echo "Меню установки игровых сборок:"
+            echo "Меню установки игровых серверов:"
             echo "1. Counter-Strike: 1.6"
             echo "2. Counter-Strike: Source v34 (old)"
             echo "3. Counter-Strike: Source (new)"
@@ -953,7 +953,36 @@ EOF
                     cs2_menu
                     ;;
                 6)
-                    # Add code for installing MTA game here
+                    samp_menu() {
+                        while true; do
+                            clear
+                            mkdir -p /path/samp /path/update/samp /path/maps/samp /servers/samp /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки GTA: SAMP"
+                            echo "1. 0.3.7-R2"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " samp_choice
+
+                            case $samp_choice in
+                                1)
+                                    curl -SL -o /tmp/enginegp/samp037svr_R2-2-1.tar.gz https://gta-multiplayer.cz/downloads/samp037svr_R2-2-1.tar.gz 2>&1 | tee -a "${logsInst}"
+                                    sudo tar -xzf /tmp/enginegp/samp037svr_R2-2-1.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
+                                    sudo mv /tmp/enginegp/samp03 /path/samp/037R2 2>&1 | tee -a "$logsInst"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    samp_menu
                     ;;
                 7)
                     crmp_menu() {
@@ -990,10 +1019,41 @@ EOF
                             esac
                         done
                     }
+
                     crmp_menu
                     ;;
                 8)
-                    # Add code for installing MTA game here
+                    mta_menu() {
+                        while true; do
+                            clear
+                            mkdir -p /path/mta /path/update/mta /path/maps/mta /servers/mta /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            echo "Меню установки GTA: MTA"
+                            echo "1. 1.6.0"
+                            echo "0. Вернуться в предыдущее меню"
+
+                            read -rp "Выберите пункт меню: " mta_choice
+
+                            case $mta_choice in
+                                1)
+                                    curl -SL -o /tmp/enginegp/multitheftauto_linux_x64.tar.gz https://linux.multitheftauto.com/dl/multitheftauto_linux_x64.tar.gz 2>&1 | tee -a "${logsInst}"
+                                    sudo tar -xzf /tmp/enginegp/multitheftauto_linux_x64.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
+                                    sudo mv /tmp/enginegp/multitheftauto_linux_x64 /path/mta/160 2>&1 | tee -a "$logsInst"
+                                    sudo mv /path/mta/160/mta-server64 /path/mta/160/mta-server 2>&1 | tee -a "$logsInst"
+                                    ;;
+                                0)
+                                    break
+                                    ;;
+                                *)
+                                    clear
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                                    ;;
+                            esac
+                        done
+                    }
+
+                    mta_menu
                     ;;
                 9)
                     mc_menu() {
