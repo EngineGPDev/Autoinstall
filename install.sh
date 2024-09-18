@@ -799,7 +799,7 @@ EOF
 
                 case $game_choice in
                     1)
-                        crmp_menu() {
+                        cs16_menu() {
                             while true; do
                                 clear
                                 mkdir -p /path/cs /path/update/cs /path/maps/cs /servers/cs 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -826,6 +826,8 @@ EOF
                                 esac
                             done
                         }
+
+                        cs16_menu
                         ;;
                     2)
                         cssold_menu() {
