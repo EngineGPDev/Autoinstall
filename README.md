@@ -11,7 +11,7 @@
 ## Starting the auto installer:
 **Update indexes and packages**
 ```bash
-apt -y update && apt -y upgrade
+apt -y update && apt -y full-upgrade
 ```
 **Install GIT**
 ```bash
