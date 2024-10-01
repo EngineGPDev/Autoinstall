@@ -45,6 +45,7 @@ done
 
 # Массив с поддерживаемыми версиями операционной системы
 suppOs=("Debian 11" "Debian 12" "Ubuntu 22.04" "Ubuntu 24.04")
+repoExp=$("*.list" "*.sources")
 
 # Получаем текущую версию операционной системы
 disOs=$(lsb_release -si)
@@ -170,7 +171,16 @@ while true; do
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
                     fi
                 else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-php-*.list" ]; then
+                    foundExp=false
+
+                    # Проверяем наличие каждого файла
+                    for exp in "${repoExp[@]}"; do
+                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-php-$exp" ]; then
+                            foundExp=true
+                        fi
+                    done
+
+                    if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         echo "Репозиторий php не обнаружен. Добавляем..." | tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -206,7 +216,16 @@ while true; do
                         sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
+                    foundExp=false
+
+                    # Проверяем наличие каждого файла
+                    for exp in "${repoExp[@]}"; do
+                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
+                            foundExp=true
+                        fi
+                    done
+
+                    if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -560,7 +579,16 @@ EOF
                         sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
-                    if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-*.list" ]; then
+                    foundExp=false
+
+                    # Проверяем наличие каждого файла
+                    for exp in "${repoExp[@]}"; do
+                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
+                            foundExp=true
+                        fi
+                    done
+
+                    if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
