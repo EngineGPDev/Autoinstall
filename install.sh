@@ -102,25 +102,20 @@ if [ $# -gt 0 ]; then
                 ;;
         esac
     done
+fi
 
-    # Если версия PHP не выбрана, использовать PHP 7.4 по умолчанию
-    if [ -z "$verPhp" ]; then
-        verPhp="8.2"
-    fi
-
-    # Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
-    if [ -z "$sysIp" ]; then
-        sysIp=$(curl -s ipinfo.io/ip)
-    fi
-
-    # Если ветка не указана, использовать main
-    if [ -z "$gitEgp" ]; then
-        gitEgp="main"
-    fi
-else
-    # Если нет аргументов, задаём по умолчанию
+# Если версия PHP не выбрана, использовать PHP 7.4 по умолчанию
+if [ -z "$verPhp" ]; then
     verPhp="8.2"
-    sysIp=$(curl -s ipinfo.io/ip)
+fi
+
+# Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
+if [ -z "$sysIp" ]; then
+    sysIp=$(ip a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
+fi
+
+# Если ветка не указана, использовать main
+if [ -z "$gitEgp" ]; then
     gitEgp="main"
 fi
 
