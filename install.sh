@@ -465,11 +465,11 @@ EOF
 
                     # Настраиваем конфигурацию панели
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/example.com/$sysIp/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/enginegp_ck/$cronKey/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/enginegp_db/$dbEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/enginegp_usr/$userEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/enginegp_pwd/$passEgpSql/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/APP_URL=\"example.com\"/APP_URL=\"$sysIp\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/APP_CRONKEY=\"enginegp_ck\"/APP_CRONKEY=\"$cronKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/DB_DATABASE=\"enginegp_db\"/DB_DATABASE=\"$dbEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/DB_USERNAME=\"enginegp_usr\"/DB_USERNAME=\"$userEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/DB_PASSWORD=\"enginegp_pwd\"/DB_PASSWORD=\"$passEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/ENGINEGPHASH/$(echo "$usrEgpHASH" | sed 's/[\/&]/\\&/g')/g" /var/www/enginegp/enginegp.sql 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Создание пользователя
