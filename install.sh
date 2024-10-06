@@ -31,7 +31,7 @@ saveDir="/root/enginegp.cfg"
 sysUpdate
 
 # Установка начальных пакетов.
-pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git" "jq")
+pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git" "jq" "openssl")
 
 # Цикл установки пакетов
 for package in "${pkgsReq[@]}"; do
@@ -240,6 +240,7 @@ while true; do
                 # Генерирование паролей и имён
                 passPma=$(pwgen -cns -1 16)
                 cronKey=$(pwgen -cns -1 12)
+                jwtKey=$(openssl rand -base64 32)
                 userEgpSql="enginegp_$(pwgen -cns -1 8)"
                 dbEgpSql="enginegp_$(pwgen -1 8)"
                 passEgpSql=$(pwgen -cns -1 16)
@@ -462,6 +463,7 @@ EOF
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/APP_URL=\"example.com\"/APP_URL=\"$sysIp\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/APP_CRONKEY=\"enginegp_ck\"/APP_CRONKEY=\"$cronKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/JWT_KEY=\"jwt_key\"/s/JWT_KEY=\"$jwtKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_DATABASE=\"enginegp_db\"/DB_DATABASE=\"$dbEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_USERNAME=\"enginegp_usr\"/DB_USERNAME=\"$userEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_PASSWORD=\"enginegp_pwd\"/DB_PASSWORD=\"$passEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
