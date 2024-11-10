@@ -234,7 +234,7 @@ while true; do
                 fi
 
                 # Список пакетов для установки
-                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "php$verPhp-gmp" "php$verPhp-bz2" "nginx" "mariadb-server" "ufw" "memcached" "screen" "cron")
+                pkgsList=("php$verPhp-fpm" "php$verPhp-common" "php$verPhp-cli" "php$verPhp-memcache" "php$verPhp-mysql" "php$verPhp-xml" "php$verPhp-mbstring" "php$verPhp-gd" "php$verPhp-imagick" "php$verPhp-zip" "php$verPhp-curl" "php$verPhp-gmp" "php$verPhp-bz2" "nginx" "mariadb-server" "ufw" "memcached" "screen" "tmux" "cron")
                 pkgsPma=("php$defPhp-fpm" "php$defPhp-mbstring" "php$defPhp-zip" "php$defPhp-gd" "php$defPhp-json" "php$defPhp-curl")
 
                 # Генерирование паролей и имён
@@ -623,7 +623,7 @@ EOF
     }
 }"
 
-                pkgsLOC=("glibc-source" "lib32z1" "libbabeltrace1" "libc6-dbg" "libdw1" "lib32stdc++6" "libreadline8" "lib32gcc-s1" "libtinfo5:i386" "screen" "tcpdump" "lsof" "qstat" "gdb-minimal" "ntpdate" "gcc-multilib" "iptables" "default-jdk" "nginx" "mariadb-server")
+                pkgsLOC=("glibc-source" "lib32z1" "libbabeltrace1" "libc6-dbg" "libdw1" "lib32stdc++6" "libreadline8" "lib32gcc-s1" "libtinfo5:i386" "screen" "tmux" "tcpdump" "lsof" "qstat" "gdb-minimal" "ntpdate" "gcc-multilib" "iptables" "default-jdk" "nginx" "mariadb-server")
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
