@@ -332,16 +332,16 @@ while true; do
                 # Задачи CRON
                 cronTasks="#
 # Default Crontab by EngineGP
-* * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads scan_servers_admins
-* * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads scan_servers_down
-*/2 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads scan_servers
-*/15 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads scan_servers_stop
-*/15 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads scan_servers_copy
-0 */1 * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads graph_servers_hour
-0 0 */1 * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey threads graph_servers_day
-*/10 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey notice_help
-*/30 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey notice_server_overdue
-*/30 * * * * sudo -u www-data php /var/www/enginegp/cron.php $cronKey preparing_web_delete
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_admins
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_down
+*/2 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers
+*/15 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_stop
+*/15 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_copy
+0 */1 * * * php /var/www/enginegp/cron.php $cronKey threads graph_servers_hour
+0 0 */1 * * php /var/www/enginegp/cron.php $cronKey threads graph_servers_day
+*/10 * * * * php /var/www/enginegp/cron.php $cronKey notice_help
+*/30 * * * * php /var/www/enginegp/cron.php $cronKey notice_server_overdue
+*/30 * * * * php /var/www/enginegp/cron.php $cronKey preparing_web_delete
 # Default Crontab by EngineGP
 #"
 
