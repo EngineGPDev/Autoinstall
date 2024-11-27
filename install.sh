@@ -22,7 +22,7 @@ sysUpdate (){
 clear
 
 # Создаём переменную для логов
-logsInst="$(dirname "$0")/enginegp_install.log"
+logsInst="/var/log/enginegp_install.log"
 
 # Директория сохранения данных
 saveDir="/root/enginegp.cfg"
