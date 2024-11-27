@@ -11,11 +11,11 @@
 
 # Обновление таблиц и системы
 sysUpdate (){
-    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+    echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
     echo "Обновление системы..." | tee -a "$logsInst"
-    echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-    apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-    apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
+    echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
+    apt-get -y update 2>&1 | tee -a "$logsInst" > /dev/null
+    apt-get -y dist-upgrade 2>&1 | tee -a "$logsInst" > /dev/null
 }
 
 # Очистка экрана перед установкой
@@ -36,10 +36,10 @@ pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "
 # Цикл установки пакетов
 for package in "${pkgsReq[@]}"; do
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
-        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+        echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
         echo "$package не установлен. Выполняется установка..."  | tee -a "$logsInst"
-        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-        apt-get install -y "$package" 2>&1 | sudo tee -a "$logsInst" > /dev/null
+        echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
+        apt-get install -y "$package" 2>&1 | tee -a "$logsInst" > /dev/null
     fi
 done
 
@@ -147,7 +147,7 @@ while true; do
                 if [[ " ${disOs} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/php.list" ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий php не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий php не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Скачиваем ключа зеркала репозитория Sury
                         curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -177,7 +177,7 @@ while true; do
 
                     if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий php не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий php не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Добавляем репозиторий php
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -195,7 +195,7 @@ while true; do
                 if [[ " ${disOs} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Скачиваем ключа зеркала репозитория Sury
                         curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -222,7 +222,7 @@ while true; do
 
                     if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Добавляем репозиторий nginx
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -350,7 +350,7 @@ while true; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "$package не установлен. Выполняется установка..." | tee -a "$logsInst"
+                        echo "$package не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo apt-get install -y "$package" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
@@ -361,7 +361,7 @@ while true; do
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "$package не установлен. Выполняется установка..." | tee -a "$logsInst"
+                        echo "$package не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo apt-get install -y "$package" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
@@ -370,7 +370,7 @@ while true; do
                 # Установка phpMyAdmin
                 if ! dpkg-query -W -f='${Status}' "phpmyadmin" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "phpmyadmin не установлен. Выполняется установка..." | tee -a "$logsInst"
+                    echo "phpmyadmin не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo debconf-set-selections <<EOF
 phpmyadmin phpmyadmin/dbconfig-install boolean true
@@ -387,7 +387,7 @@ EOF
                     sudo systemctl restart nginx 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "phpmyadmin уже установлен в системе. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "phpmyadmin уже установлен в системе. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
@@ -405,7 +405,7 @@ EOF
                 if dpkg-query -W -f='${Status}' "php$defPhp-fpm" 2>/dev/null | grep -q "install ok installed"; then
                     if ! systemctl is-active --quiet php"$defPhp"-fpm; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "php$defPhp-fpm не запущен. Выполняется запуск..." | tee -a "$logsInst"
+                        echo "php$defPhp-fpm не запущен. Выполняется запуск..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo systemctl start php"$defPhp"-fpm 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
@@ -415,7 +415,7 @@ EOF
                 if dpkg-query -W -f='${Status}' "php$verPhp-fpm" 2>/dev/null | grep -q "install ok installed"; then
                     if ! systemctl is-active --quiet php"$verPhp"-fpm; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "php$verPhp-fpm не запущен. Выполняется запуск..." | tee -a "$logsInst"
+                        echo "php$verPhp-fpm не запущен. Выполняется запуск..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo systemctl start php"$verPhp"-fpm 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
@@ -424,7 +424,7 @@ EOF
                 # Установка и настрока composer
                 if [ ! -f "/usr/local/bin/composer" ]; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "composer не установлен. Выполняется установка..." | tee -a "$logsInst"
+                    echo "composer не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     curl -sSL https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 fi
@@ -432,7 +432,7 @@ EOF
                 # Установка EngineGP
                 if [ ! -d "/var/www/enginegp" ]; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "enginegp не установлен. Выполняется установка..." | tee -a "$logsInst"
+                    echo "enginegp не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     # Создание временного каталога
                     sudo mkdir -p /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -490,7 +490,7 @@ EOF
                     { (sudo crontab -l; echo "$cronTasks") | sudo crontab -; } 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "enginegp уже установлен в системе. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
@@ -504,7 +504,7 @@ EOF
                 # Настраиваем nginx
                 if dpkg-query -W -f='${Status}' "nginx" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "nginx не настроен. Выполняется настройка..." | tee -a "$logsInst"
+                    echo "nginx не настроен. Выполняется настройка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     # Удаляем дефолтный и создаём конфиг EngineGP
                     sudo rm /etc/nginx/sites-enabled/default 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -516,33 +516,33 @@ EOF
                     sudo systemctl restart nginx 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "NGINX не установлен. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "NGINX не установлен. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
                 fi
 
                 # Сообщение о завершении установки
-                echo "===================================" | tee -a $saveDir
-                echo "Установка завершена!" | tee -a $saveDir
-                echo "Ссылка на EngineGP: http://$sysIp/" | tee -a $saveDir
-                echo "Пользователь: admin" | tee -a $saveDir
-                echo "Пароль: $usrEgpPass" | tee -a $saveDir
-                echo "===================================" | tee -a $saveDir
-                echo "MySQL данные для EngineGP" | tee -a $saveDir
-                echo "Ссылка на phpMyAdmin: http://$sysIp:9090/" | tee -a $saveDir
-                echo "База данных: $dbEgpSql" | tee -a $saveDir
-                echo "Пользователь: $userEgpSql" | tee -a $saveDir
-                echo "Пароль: $passEgpSql" | tee -a $saveDir
-                echo "===================================" | tee -a $saveDir
-                echo "Системные данные MySQL" | tee -a $saveDir
-                echo "Пароль пользователя phpmyadmin: $passPma" | tee -a $saveDir
-                echo "===================================" | tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
+                echo "Установка завершена!" | sudo tee -a $saveDir
+                echo "Ссылка на EngineGP: http://$sysIp/" | sudo tee -a $saveDir
+                echo "Пользователь: admin" | sudo tee -a $saveDir
+                echo "Пароль: $usrEgpPass" | sudo tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
+                echo "MySQL данные для EngineGP" | sudo tee -a $saveDir
+                echo "Ссылка на phpMyAdmin: http://$sysIp:9090/" | sudo tee -a $saveDir
+                echo "База данных: $dbEgpSql" | sudo tee -a $saveDir
+                echo "Пользователь: $userEgpSql" | sudo tee -a $saveDir
+                echo "Пароль: $passEgpSql" | sudo tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
+                echo "Системные данные MySQL" | sudo tee -a $saveDir
+                echo "Пароль пользователя phpmyadmin: $passPma" | sudo tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
                 read -rp "Нажмите Enter для завершения..."
                 continue
             else
                 echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                echo "Вы используете неподдерживаемую версию Linux" | tee -a "$logsInst"
+                echo "Вы используете неподдерживаемую версию Linux" | sudo tee -a "$logsInst"
                 echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 read -rp "Нажмите Enter для завершения..."
             fi
@@ -560,7 +560,7 @@ EOF
                 if [[ " ${disOs} " =~ " Debian " ]]; then
                     if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Скачиваем ключа зеркала репозитория Sury
                         curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -587,7 +587,7 @@ EOF
 
                     if [ "$foundExp" = false ]; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | tee -a "$logsInst"
+                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Добавляем репозиторий nginx
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -627,7 +627,7 @@ EOF
 
                 if ! dpkg --print-foreign-architectures | grep -q "i386"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "Архитектура i386 не добавлена. Выполняется добавление..." | tee -a "$logsInst"
+                    echo "Архитектура i386 не добавлена. Выполняется добавление..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo dpkg --add-architecture i386 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
@@ -640,7 +640,7 @@ EOF
                     # Проверка на наличие и установка пакетов
                     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"; then
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "$package не установлен. Выполняется установка..." | tee -a "$logsInst"
+                        echo "$package не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo apt-get install -y "$package" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
@@ -653,7 +653,7 @@ EOF
                     sudo chmod -R 755 /var/nginx 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "fastdl не настроен. Выполняется настройка..." | tee -a "$logsInst"
+                    echo "fastdl не настроен. Выполняется настройка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     # Удаляем дефолтный конфиг и создаём для FastDL
                     sudo rm /etc/nginx/sites-enabled/default 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -665,7 +665,7 @@ EOF
                     sudo systemctl restart nginx 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "fastdl не установлен. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "fastdl не установлен. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
@@ -674,7 +674,7 @@ EOF
                 # Устанавливаем ProFTPD
                 if ! dpkg-query -W -f='${Status}' "proftpd" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "proftpd не установлен. Выполняется установка..." | tee -a "$logsInst"
+                    echo "proftpd не установлен. Выполняется установка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                     # Устанавливаем ProFTPD и необходимые модули
@@ -716,7 +716,7 @@ EOF
                     systemctl restart proftpd 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "proftpd уже установлен. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "proftpd уже установлен. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
@@ -725,7 +725,7 @@ EOF
                 # Настраиваем rclocal
                 if [ ! -f /etc/rc.local ]; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "rc.local не настроен. Выполняется настройка..." | tee -a "$logsInst"
+                    echo "rc.local не настроен. Выполняется настройка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo touch /etc/rc.local 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     echo '#!/bin/bash' | sudo tee -a /etc/rc.local 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -737,7 +737,7 @@ EOF
                 # Настраиваем iptables
                 if dpkg-query -W -f='${Status}' "iptables" 2>/dev/null | grep -q "install ok installed"; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "iptables не настроен. Выполняется настройка..." | tee -a "$logsInst"
+                    echo "iptables не настроен. Выполняется настройка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     # Проверка на наличие файла
                     if [ ! -f /root/iptables_block ]; then
@@ -748,7 +748,7 @@ EOF
                     fi
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "iptables уже установлен. Продолжение установки невозможно." | tee -a "$logsInst"
+                    echo "iptables уже установлен. Продолжение установки невозможно." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
@@ -757,7 +757,7 @@ EOF
                 # Установка SteamCMD
                 if [ ! -d "/path/cmd" ]; then
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "steamcmd не настроен. Выполняется настройка..." | tee -a "$logsInst"
+                    echo "steamcmd не настроен. Выполняется настройка..." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sudo groupadd -f servers 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
@@ -780,23 +780,23 @@ EOF
                     sudo /path/cmd/steamcmd.sh +quit 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 else
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    echo "steamcmd уже установлен. Продолжение установки невозможно...." | tee -a "$logsInst"
+                    echo "steamcmd уже установлен. Продолжение установки невозможно...." | sudo tee -a "$logsInst"
                     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     read -rp "Нажмите Enter для завершения..."
                     continue
                 fi
-                echo "===================================" | tee -a $saveDir
-                echo "Данные локации" | tee -a $saveDir
-                echo "Пользователь ProFTPD: $userProFTPD" | tee -a $saveDir
-                echo "Пароль ProFTPD: $passProFTPD" | tee -a $saveDir
-                echo "База данных ProFTPD: $dbProFTPD" | tee -a $saveDir
-                echo "Порт базы данных: 3306" | tee -a $saveDir
-                echo "===================================" | tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
+                echo "Данные локации" | sudo tee -a $saveDir
+                echo "Пользователь ProFTPD: $userProFTPD" | sudo tee -a $saveDir
+                echo "Пароль ProFTPD: $passProFTPD" | sudo tee -a $saveDir
+                echo "База данных ProFTPD: $dbProFTPD" | sudo tee -a $saveDir
+                echo "Порт базы данных: 3306" | sudo tee -a $saveDir
+                echo "===================================" | sudo tee -a $saveDir
                 read -rp "Нажмите Enter для завершения..."
                 continue
             else
                 echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                echo "Вы используете неподдерживаемую версию Linux" | tee -a "$logsInst"
+                echo "Вы используете неподдерживаемую версию Linux" | sudo tee -a "$logsInst"
                 echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                 read -rp "Нажмите Enter для завершения..."
             fi
@@ -836,8 +836,8 @@ EOF
 
                                 case $cs16_choice in
                                     1)
-                                        mkdir -p /path/cs/steam 2>&1 | tee -a "${logsInst}"
-                                        sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | tee -a "${logsInst}"
+                                        mkdir -p /path/cs/steam 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo /path/cmd/steamcmd.sh +force_install_dir /path/cs/steam +login anonymous +app_update 90 -beta beta validate +quit 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -845,7 +845,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -868,9 +868,9 @@ EOF
                                 case $css34_choice in
                                     1)
                                         mkdir -p /path/cssold/steam 2>&1 | tee -a "${logsInst}"
-                                        curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | tee -a "${logsInst}"
-                                        sudo unzip -o /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | tee -a "${logsInst}"
-                                        sudo rm /path/cssold/steam/steam.zip | tee -a "$logsInst" 2>&1 | tee -a "${logsInst}"
+                                        curl -SL -o /path/cssold/steam/steam.zip $gamesURL/cssold/steam.zip 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo unzip -o /path/cssold/steam/steam.zip -d /path/cssold/steam/ 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo rm /path/cssold/steam/steam.zip 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -878,7 +878,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -900,8 +900,8 @@ EOF
 
                                 case $css_choice in
                                     1)
-                                        mkdir -p /path/css/steam 2>&1 | tee -a "${logsInst}"
-                                        /path/cmd/steamcmd.sh +force_install_dir /path/css/steam +login anonymous +app_update 232330 validate +quit 2>&1 | tee -a "${logsInst}"
+                                        mkdir -p /path/css/steam 2>&1 | sudo tee -a "${logsInst}"
+                                        /path/cmd/steamcmd.sh +force_install_dir /path/css/steam +login anonymous +app_update 232330 validate +quit 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -909,7 +909,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -931,8 +931,8 @@ EOF
 
                                 case $csgo_choice in
                                     1)
-                                        mkdir -p /path/csgo/steam 2>&1 | tee -a "${logsInst}"
-                                        /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | tee -a "${logsInst}"
+                                        mkdir -p /path/csgo/steam 2>&1 | sudo tee -a "${logsInst}"
+                                        /path/cmd/steamcmd.sh +force_install_dir /path/csgo/steam +login anonymous +app_update 740 validate +quit 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -940,7 +940,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -962,8 +962,8 @@ EOF
 
                                 case $cs2_choice in
                                     1)
-                                        mkdir -p /path/cs2/steam 2>&1 | tee -a "${logsInst}"
-                                        /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | tee -a "${logsInst}"
+                                        mkdir -p /path/cs2/steam 2>&1 | sudo tee -a "${logsInst}"
+                                        /path/cmd/steamcmd.sh +force_install_dir /path/cs2/steam +login anonymous +app_update 730 validate +quit 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -971,7 +971,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -993,9 +993,9 @@ EOF
 
                                 case $samp_choice in
                                     1)
-                                        curl -SL -o /tmp/enginegp/samp037svr_R2-2-1.tar.gz https://gta-multiplayer.cz/downloads/samp037svr_R2-2-1.tar.gz 2>&1 | tee -a "${logsInst}"
-                                        sudo tar -xzf /tmp/enginegp/samp037svr_R2-2-1.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
-                                        sudo mv /tmp/enginegp/samp03 /path/samp/037R2 2>&1 | tee -a "$logsInst"
+                                        curl -SL -o /tmp/enginegp/samp037svr_R2-2-1.tar.gz https://gta-multiplayer.cz/downloads/samp037svr_R2-2-1.tar.gz 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo tar -xzf /tmp/enginegp/samp037svr_R2-2-1.tar.gz -C /tmp/enginegp 2>&1 | sudo tee -a "$logsInst"
+                                        sudo mv /tmp/enginegp/samp03 /path/samp/037R2 2>&1 | sudo tee -a "$logsInst"
                                         sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
@@ -1004,7 +1004,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -1027,15 +1027,15 @@ EOF
 
                                 case $crmp_choice in
                                     1)
-                                        curl -SL -o /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c3-linux.tar.gz 2>&1 | tee -a "${logsInst}"
-                                        sudo tar -xzf /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
-                                        sudo mv /tmp/enginegp/srv-cr-mp-c3-linux /path/crmp/03eC3 2>&1 | tee -a "$logsInst"
+                                        curl -SL -o /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c3-linux.tar.gz 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo tar -xzf /tmp/enginegp/srv-cr-mp-c3-linux.tar.gz -C /tmp/enginegp 2>&1 | sudo tee -a "$logsInst"
+                                        sudo mv /tmp/enginegp/srv-cr-mp-c3-linux /path/crmp/03eC3 2>&1 | sudo tee -a "$logsInst"
                                         sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     2)
-                                        curl -SL -o /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c5-linux.tar.gz 2>&1 | tee -a "${logsInst}"
-                                        sudo tar -xzf /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
-                                        sudo mv /tmp/enginegp/samp03 /path/crmp/037C5 2>&1 | tee -a "$logsInst"
+                                        curl -SL -o /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz https://cr-mp.ru/download/srv-cr-mp-c5-linux.tar.gz 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo tar -xzf /tmp/enginegp/srv-cr-mp-c5-linux.tar.gz -C /tmp/enginegp 2>&1 | sudo tee -a "$logsInst"
+                                        sudo mv /tmp/enginegp/samp03 /path/crmp/037C5 2>&1 | sudo tee -a "$logsInst"
                                         sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
@@ -1044,7 +1044,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -1066,10 +1066,10 @@ EOF
 
                                 case $mta_choice in
                                     1)
-                                        curl -SL -o /tmp/enginegp/multitheftauto_linux_x64.tar.gz https://linux.multitheftauto.com/dl/multitheftauto_linux_x64.tar.gz 2>&1 | tee -a "${logsInst}"
-                                        sudo tar -xzf /tmp/enginegp/multitheftauto_linux_x64.tar.gz -C /tmp/enginegp 2>&1 | tee -a "$logsInst"
-                                        sudo mv /tmp/enginegp/multitheftauto_linux_x64 /path/mta/160 2>&1 | tee -a "$logsInst"
-                                        sudo mv /path/mta/160/mta-server64 /path/mta/160/mta-server 2>&1 | tee -a "$logsInst"
+                                        curl -SL -o /tmp/enginegp/multitheftauto_linux_x64.tar.gz https://linux.multitheftauto.com/dl/multitheftauto_linux_x64.tar.gz 2>&1 | sudo tee -a "${logsInst}"
+                                        sudo tar -xzf /tmp/enginegp/multitheftauto_linux_x64.tar.gz -C /tmp/enginegp 2>&1 | sudo tee -a "$logsInst"
+                                        sudo mv /tmp/enginegp/multitheftauto_linux_x64 /path/mta/160 2>&1 | sudo tee -a "$logsInst"
+                                        sudo mv /path/mta/160/mta-server64 /path/mta/160/mta-server 2>&1 | sudo tee -a "$logsInst"
                                         sudo rm -rf /tmp/enginegp/* 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                     0)
@@ -1078,7 +1078,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -1100,8 +1100,8 @@ EOF
 
                                 case $mc_choice in
                                     1)
-                                        mkdir -p /path/mc/paper1204 2>&1 | tee -a "${logsInst}"
-                                        curl -SL -o /path/mc/paper1204/start.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/497/downloads/paper-1.20.4-497.jar 2>&1 | tee -a "${logsInst}"
+                                        mkdir -p /path/mc/paper1204 2>&1 | sudo tee -a "${logsInst}"
+                                        curl -SL -o /path/mc/paper1204/start.jar https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/497/downloads/paper-1.20.4-497.jar 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -1109,7 +1109,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -1132,7 +1132,7 @@ EOF
                                     1)
                                         clear
                                         mkdir -p /path/rust/steam 2>&1 | tee -a "${logsInst}"
-                                        sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | tee -a "${logsInst}"
+                                        sudo /path/cmd/steamcmd.sh +force_install_dir /path/rust/steam +login anonymous +app_update 258550 validate +quit 2>&1 | sudo tee -a "${logsInst}"
                                         ;;
                                     0)
                                         break
@@ -1140,7 +1140,7 @@ EOF
                                     *)
                                         clear
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                                         ;;
                                 esac
@@ -1155,7 +1155,7 @@ EOF
                     *)
                         clear
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+                        echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         ;;
                 esac
@@ -1166,10 +1166,10 @@ EOF
         4)
             clear
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-            echo "Текущая версия Linux: $currOs" | tee -a "$logsInst"
-            echo "Внешний IP-адрес: $sysIp" | tee -a "$logsInst"
-            echo "Версия php: $verPhp" | tee -a "$logsInst"
-            echo "Ветка GIT: $gitEgp" | tee -a "$logsInst"
+            echo "Текущая версия Linux: $currOs" | sudo tee -a "$logsInst"
+            echo "Внешний IP-адрес: $sysIp" | sudo tee -a "$logsInst"
+            echo "Версия php: $verPhp" | sudo tee -a "$logsInst"
+            echo "Ветка GIT: $gitEgp" | sudo tee -a "$logsInst"
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
             read -rp "Нажмите Enter для выхода в главное меню..."
             continue
@@ -1177,19 +1177,19 @@ EOF
         0)
             clear
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-            echo "До свидания!" | tee -a "$logsInst"
+            echo "До свидания!" | sudo tee -a "$logsInst"
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
             exit 0
             ;;
         *)
             clear
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-            echo "Неверный выбор. Попробуйте еще раз." | tee -a "$logsInst"
+            echo "Неверный выбор. Попробуйте еще раз." | sudo tee -a "$logsInst"
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
             ;;
     esac
 
     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-    echo "Нажмите Enter, чтобы продолжить..." | tee -a "$logsInst"
+    echo "Нажмите Enter, чтобы продолжить..." | sudo tee -a "$logsInst"
     echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
 done
