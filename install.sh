@@ -445,7 +445,7 @@ EOF
                         sudo unzip -o /tmp/enginegp/enginegp.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo mv /tmp/enginegp/EngineGPDev-EngineGP-* /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     else
-                        curl -s https://api.github.com/repos/EngineGPDev/EngineGP/releases | jq -r 'map(select(.prerelease == true)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/enginegp.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        curl -s https://api.github.com/repos/EngineGPDev/EngineGP/releases | jq -r 'map(select(.prerelease == false)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/enginegp.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo unzip -o /tmp/enginegp/enginegp.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo mv /tmp/enginegp/EngineGPDev-EngineGP-* /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
