@@ -89,9 +89,9 @@ if [ -z "$sysIp" ]; then
     sysIp=$(ip a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
 fi
 
-# Если ветка не указана, использовать main
+# Если ветка не указана, использовать main (Временно beta)
 if [ -z "$gitEgp" ]; then
-    gitEgp="main"
+    gitEgp="beta"
 fi
 
 # Проверяем, является ли полученный IP-адрес действительным IPv4 адресом
