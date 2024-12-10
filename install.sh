@@ -36,13 +36,13 @@ for os in "${suppOs[@]}"; do
     fi
 done
 
+# Переменные для хранения
+verPhp="8.2"
+sysIp=$(ip a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
+relArgs=()
+
 # Проверка аргументов командной строки
 if [ $# -gt 0 ]; then
-    # Переменные для хранения
-    verPhp=""
-    sysIp=""
-    gitEgp=""
-
     # Перебор всех аргументов
     while [[ $# -gt 0 ]]; do
         key="$1"
@@ -60,11 +60,9 @@ if [ $# -gt 0 ]; then
                 shift # Пропустить значение IP-адреса
                 shift # Пропустить аргумент --ip
                 ;;
-            --branch)
-                # Если передан аргумент --ip, сохранить указанный IP-адрес
-                gitEgp="$2"
-                shift # Пропустить значение ветки
-                shift # Пропустить аргумент --branch
+            --release|--beta|--snapshot)
+                relArgs+=("$key")
+                shift # Пропустить аргументы
                 ;;
             *)
                 # Неизвестный аргумент, вывести справку и выйти
@@ -72,26 +70,13 @@ if [ $# -gt 0 ]; then
                 echo "Использование: ./install.sh --php 8.2 --ip 192.168.1.1 --branch main"
                 echo "  --php версия: установить указанную версию PHP. Формат должен быть: 8.2"
                 echo "  --ip IP-адрес: использовать указанный IP-адрес. Формат должен быть: 192.168.1.1"
-                echo "  --branch ветка: использовать указаную ветку GIT. Формат должен быть: main"
+                echo "  --release: установить последнюю, стабильную версию"
+                echo "  --beta: установить последнюю, бета-версию"
+                echo "  --snapshot: установить последний snapshot"
                 exit 1
                 ;;
         esac
     done
-fi
-
-# Если версия PHP не выбрана, использовать PHP 7.4 по умолчанию
-if [ -z "$verPhp" ]; then
-    verPhp="8.2"
-fi
-
-# Если IP-адрес не указан, получить внешний IP-адрес с помощью сервиса ipinfo.io
-if [ -z "$sysIp" ]; then
-    sysIp=$(ip a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
-fi
-
-# Если ветка не указана, использовать main (Временно beta)
-if [ -z "$gitEgp" ]; then
-    gitEgp="beta"
 fi
 
 # Проверяем, является ли полученный IP-адрес действительным IPv4 адресом
@@ -164,7 +149,12 @@ if $foundOs; then
             echo "Starting the automatic installation" | tee -a "$logsInst"
             echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
             sudo chmod +x /tmp/enginegp/autoinstall/deb.install.sh 2>&1 | sudo tee -a "$logsInst" > /dev/null
-            sudo /tmp/enginegp/autoinstall/deb.install.sh --php "$verPhp" --ip "$sysIp" --branch "$gitEgp"
+            # Передача значений в команду
+            if [ ${#relArgs[@]} -gt 0 ]; then
+                sudo /tmp/enginegp/autoinstall/deb.install.sh --php "$verPhp" --ip "$sysIp" "${relArgs[@]}"
+            else
+                sudo /tmp/enginegp/autoinstall/deb.install.sh --php "$verPhp" --ip "$sysIp"
+            fi
         fi
     done
 else

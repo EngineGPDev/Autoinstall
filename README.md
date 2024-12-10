@@ -39,17 +39,17 @@ chmod +x ./Autoinstall/install.sh
 
 **Choosing the php version**
 ```bash
-./Autoinstall/install.sh --php 7.4
+./Autoinstall/install.sh --php 8.2
 ```
 > [!NOTE]
-> Instead of 7.4, you need to substitute the desired php version;\
+> Instead of 8.2, you need to substitute the desired php version;\
 > Supported php versions: 7.4, 8.0, 8.1, 8.2
 
-**Selecting the working branch of the panel**
+**Choosing an EngineGP release**
 ```bash
-./Autoinstall/install.sh --branch main
+./Autoinstall/install.sh --release
 ```
 > [!NOTE]
-> main - the current stable version;\
-> beta - current beta version;\
-> develop - future beta version.
+> --release - the current stable version;\
+> --beta - current beta version;\
+> --snapshot - future beta version.
