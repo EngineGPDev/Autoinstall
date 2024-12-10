@@ -100,14 +100,13 @@ if [ $# -gt 0 ]; then
                 shift # Пропустить аргумент --beta
                 ;;
             --snapshot)
-                # Если передан аргумент --snapshot, использовать ветку develop
                 relType="snapshot"
                 shift # Пропустить аргумент --snapshot
                 ;;
             *)
                 # Неизвестный аргумент, вывести справку и выйти
                 clear
-                echo "Использование: ./install.sh --php 8.2 --ip 192.168.1.1 --branch main"
+                echo "Использование: ./install.sh --php 8.2 --ip 192.168.1.1 --release"
                 echo "  --php версия: установить указанную версию PHP. Формат должен быть: 8.2"
                 echo "  --ip IP-адрес: использовать указанный IP-адрес. Формат должен быть: 192.168.1.1"
                 echo "  --release: установить последнюю, стабильную версию"
@@ -439,7 +438,7 @@ EOF
 
                     # Загрузка EngineGP
                     if [ "$relType" == "snapshot" ]; then
-                        sudo git clone --depth 1 --branch develop https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null                        
+                        sudo git clone --depth 1 --branch main https://github.com/EngineGPDev/EngineGP.git /var/www/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null                        
                     elif [ "$relType" == "beta" ]; then
                         curl -s https://api.github.com/repos/EngineGPDev/EngineGP/releases | jq -r 'map(select(.prerelease == true)) | .[0].zipball_url' | xargs -n 1 curl -L -o /tmp/enginegp/enginegp.zip 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         sudo unzip -o /tmp/enginegp/enginegp.zip -d /tmp/enginegp 2>&1 | sudo tee -a "$logsInst" > /dev/null
