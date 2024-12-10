@@ -39,10 +39,10 @@ chmod +x ./Autoinstall/install.sh
 
 **Choosing the php version**
 ```bash
-./Autoinstall/install.sh --php 7.4
+./Autoinstall/install.sh --php 8.2
 ```
 > [!NOTE]
-> Instead of 7.4, you need to substitute the desired php version;\
+> Instead of 8.2, you need to substitute the desired php version;\
 > Supported php versions: 7.4, 8.0, 8.1, 8.2
 
 **Choosing an EngineGP release**
