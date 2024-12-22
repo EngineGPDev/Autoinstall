@@ -331,16 +331,16 @@ while true; do
                 # Задачи CRON
                 cronTasks="#
 # Default Crontab by EngineGP
-* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_admins
-* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_down
-*/2 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers
-*/15 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_stop
-*/15 * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_copy
-0 */1 * * * php /var/www/enginegp/cron.php $cronKey threads graph_servers_hour
-0 0 */1 * * php /var/www/enginegp/cron.php $cronKey threads graph_servers_day
-*/10 * * * * php /var/www/enginegp/cron.php $cronKey notice_help
-*/30 * * * * php /var/www/enginegp/cron.php $cronKey notice_server_overdue
-*/30 * * * * php /var/www/enginegp/cron.php $cronKey preparing_web_delete
+* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_admins'
+* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_down'
+*/2 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers'
+*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_stop'
+*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_copy'
+0 */1 * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_hour'
+0 0 */1 * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_day'
+*/10 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_help'
+*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_server_overdue'
+*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey preparing_web_delete'
 # Default Crontab by EngineGP
 #"
 
@@ -462,7 +462,7 @@ EOF
                     sudo mv /var/www/enginegp/.env.example /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/APP_URL=\"example.com\"/APP_URL=\"$sysIp\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/APP_CRONKEY=\"enginegp_ck\"/APP_CRONKEY=\"$cronKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    sed -i "s/JWT_KEY=\"jwt_key\"/s/JWT_KEY=\"$jwtKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                    sed -i "s/JWT_KEY=\"jwt_key\"/JWT_KEY=\"$jwtKey\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_DATABASE=\"enginegp_db\"/DB_DATABASE=\"$dbEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_USERNAME=\"enginegp_usr\"/DB_USERNAME=\"$userEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     sed -i "s/DB_PASSWORD=\"enginegp_pwd\"/DB_PASSWORD=\"$passEgpSql\"/g" /var/www/enginegp/.env 2>&1 | sudo tee -a "$logsInst" > /dev/null
