@@ -273,11 +273,7 @@ while true; do
         expires 180m;
     }
 
-    location ~ /\.ht {
-        deny all;
-    }
-
-    location ~ /\.en {
+    location ~ /\.ht|\.en {
         deny all;
     }
 
@@ -296,7 +292,6 @@ while true; do
         fastcgi_pass unix:/run/php/php$verPhp-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        include fastcgi_params;
     }
 }"
 
@@ -325,7 +320,6 @@ while true; do
         fastcgi_pass unix:/run/php/php$defPhp-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        include fastcgi_params;
     }
 }"
                 # Задачи CRON
