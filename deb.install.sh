@@ -325,16 +325,18 @@ while true; do
                 # Задачи CRON
                 cronTasks="#
 # Default Crontab by EngineGP
-* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_admins'
-* * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_down'
-*/2 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers'
-*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_stop'
-*/15 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads scan_servers_copy'
-0 */1 * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_hour'
-0 0 */1 * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey threads graph_servers_day'
-*/10 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_help'
-*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey notice_server_overdue'
-*/30 * * * * bash -c 'cd /var/www/enginegp/ && php cron.php $cronKey preparing_web_delete'
+* * * * * php /var/www/enginegp/cron.php $cronKey notice_help_admin
+* * * * * php /var/www/enginegp/cron.php $cronKey notice_help
+* * * * * php /var/www/enginegp/cron.php $cronKey notice_server_overdue
+* * * * * php /var/www/enginegp/cron.php $cronKey preparing_web_delete
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_admins
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_copy
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_down
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers_stop
+* * * * * php /var/www/enginegp/cron.php $cronKey threads scan_servers
+* * * * * php /var/www/enginegp/cron.php $cronKey users_recovery_signup
+0 */1 * * * php /var/www/enginegp/cron.php $cronKey graph_servers_hour
+0 0 */1 * * php /var/www/enginegp/cron.php $cronKey graph_servers_day
 # Default Crontab by EngineGP
 #"
 
