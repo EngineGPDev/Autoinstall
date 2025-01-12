@@ -51,7 +51,7 @@ done
 
 # Массив с поддерживаемыми версиями операционной системы
 suppOs=("Debian 11" "Debian 12" "Ubuntu 22.04" "Ubuntu 24.04")
-repoExp=$("*.list" "*.sources")
+repoExp=("jammy.list" "jammy.sources" "noble.list" "noble.sources")
 
 # Получаем текущую версию операционной системы
 disOs=$(lsb_release -si)
@@ -169,7 +169,7 @@ while true; do
 
                     # Проверяем наличие каждого файла
                     for exp in "${repoExp[@]}"; do
-                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-php-$exp" ]; then
+                        if [ -f "/etc/apt/sources.list.d/ondrej-ubuntu-php-$exp" ]; then
                             foundExp=true
                         fi
                     done
@@ -214,7 +214,7 @@ while true; do
 
                     # Проверяем наличие каждого файла
                     for exp in "${repoExp[@]}"; do
-                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
+                        if [ -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
                             foundExp=true
                         fi
                     done
@@ -575,7 +575,7 @@ EOF
 
                     # Проверяем наличие каждого файла
                     for exp in "${repoExp[@]}"; do
-                        if [ ! -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
+                        if [ -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
                             foundExp=true
                         fi
                     done
