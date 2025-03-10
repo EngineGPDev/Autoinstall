@@ -1,15 +1,11 @@
 #!/bin/bash
 ##
-# TorrentPier – Bull-powered BitTorrent tracker engine
 # EngineGP   (https://enginegp.ru or https://enginegp.com)
 #
-# @copyright Copyright (c) 2024-present TorrentPier (https://torrentpier.com)
 # @copyright Copyright (c) 2024-present Solovev Sergei <inbox@seansolovev.ru>
 #
-# @link      https://github.com/torrentpier/autoinstall for the canonical source repository
 # @link      https://github.com/EngineGPDev/Autoinstall for the canonical source repository
 #
-# @license   https://github.com/torrentpier/autoinstall/blob/main/LICENSE MIT License
 # @license   https://github.com/EngineGPDev/Autoinstall/blob/main/LICENSE MIT License
 ##
 
@@ -103,12 +99,11 @@ if $foundOs; then
             # Required packages
             pkgsList=("jq" "curl" "zip" "unzip")
 
-            # Updating tables and packages
+            # Updating the package list
             echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
-            echo "Updating tables and packages" | tee -a "$logsInst"
+            echo "Updating the package list..." | tee -a "$logsInst"
             echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
             apt-get -y update 2>&1 | tee -a "$logsInst" > /dev/null
-            apt-get -y dist-upgrade 2>&1 | tee -a "$logsInst" > /dev/null
 
             # Check and installation sudo
             if ! dpkg-query -W -f='${Status}' "sudo" 2>/dev/null | grep -q "install ok installed"; then

@@ -21,10 +21,9 @@ fi
 # Обновление таблиц и системы
 sysUpdate (){
     echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
-    echo "Обновление системы..." | tee -a "$logsInst"
+    echo "Updating the package list..." | tee -a "$logsInst"
     echo "===================================" 2>&1 | tee -a "$logsInst" > /dev/null
     apt-get -y update 2>&1 | tee -a "$logsInst" > /dev/null
-    apt-get -y dist-upgrade 2>&1 | tee -a "$logsInst" > /dev/null
 }
 
 # Создаём переменную для логов
@@ -157,9 +156,8 @@ while true; do
                         # Добавляем репозиторий php
                         sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://mirror.enginegp.com/sury/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Определяем версию php по умолчанию
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -181,9 +179,8 @@ while true; do
                         # Добавляем репозиторий php
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Определяем версию php по умолчанию
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
@@ -205,9 +202,8 @@ while true; do
                         # Добавляем репозиторий nginx
                         sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
                     foundExp=false
@@ -226,9 +222,8 @@ while true; do
                         # Добавляем репозиторий nginx
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 fi
 
@@ -566,9 +561,8 @@ EOF
                         # Добавляем репозиторий nginx
                         sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 else
                     foundExp=false
@@ -587,9 +581,8 @@ EOF
                         # Добавляем репозиторий nginx
                         sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Обновление таблиц и пакетов
+                        # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        sudo apt-get -y dist-upgrade 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 fi
 
