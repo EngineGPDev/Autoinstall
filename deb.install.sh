@@ -69,7 +69,7 @@ done
 # Переменные для хранения
 verPhp="8.2"
 sysIp=$(ip a | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
-relType="beta"
+relType="snapshot"
 
 # Проверка аргументов командной строки
 if [ $# -gt 0 ]; then
