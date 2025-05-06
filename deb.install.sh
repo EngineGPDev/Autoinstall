@@ -35,8 +35,8 @@ saveFile="/root/enginegp.cfg"
 # Обновление системы
 sysUpdate
 
-# Установка начальных пакетов.
-pkgsReq=("sudo" "curl" "lsb-release" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git" "jq" "openssl")
+# Установка начальных пакетов
+pkgsReq=("sudo" "curl" "lsb-release" "ca-certificates" "wget" "gnupg" "pwgen" "zip" "unzip" "bc" "tar" "software-properties-common" "git" "jq" "openssl")
 
 # Цикл установки пакетов
 for package in "${pkgsReq[@]}"; do
@@ -148,13 +148,10 @@ while true; do
                         echo "Репозиторий php не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         # Скачиваем ключа зеркала репозитория Sury
-                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Устанавливаем ключа зеркала репозитория Sury
-                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://www.mirror.yandex.ru/mirrors/packages.sury.org/php/apt.gpg 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Добавляем репозиторий php
-                        sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://mirror.enginegp.com/sury/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://www.mirror.yandex.ru/mirrors/packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
                         # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
@@ -184,46 +181,6 @@ while true; do
 
                         # Определяем версию php по умолчанию
                         defPhp=$(apt-cache policy php | awk -F ': ' '/Candidate:/ {split($2, a, "[:+~]"); print a[2]}')
-                    fi
-                fi
-
-                # Проверяем наличие репозитория nginx
-                if [[ " ${disOs} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        # Скачиваем ключа зеркала репозитория Sury
-                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Устанавливаем ключа зеркала репозитория Sury
-                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Добавляем репозиторий nginx
-                        sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Обновление списка пакетов
-                        sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    fi
-                else
-                    foundExp=false
-
-                    # Проверяем наличие каждого файла
-                    for exp in "${repoExp[@]}"; do
-                        if [ -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
-                            foundExp=true
-                        fi
-                    done
-
-                    if [ "$foundExp" = false ]; then
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        # Добавляем репозиторий nginx
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Обновление списка пакетов
-                        sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
                     fi
                 fi
 
@@ -546,45 +503,6 @@ EOF
 
             # Проверяем, содержится ли текущая версия в массиве поддерживаемых версий
             if $foundOs; then
-                # Проверяем наличие репозитория nginx
-                if [[ " ${disOs} " =~ " Debian " ]]; then
-                    if [ ! -f "/etc/apt/sources.list.d/nginx.list" ]; then
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        # Скачиваем ключа зеркала репозитория Sury
-                        curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://mirror.enginegp.com/sury/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Устанавливаем ключа зеркала репозитория Sury
-                        sudo dpkg -i /tmp/debsuryorg-archive-keyring.deb 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Добавляем репозиторий nginx
-                        sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-nginx.gpg] https://mirror.enginegp.com/sury/nginx/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/nginx.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Обновление списка пакетов
-                        sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    fi
-                else
-                    foundExp=false
-
-                    # Проверяем наличие каждого файла
-                    for exp in "${repoExp[@]}"; do
-                        if [ -f "/etc/apt/sources.list.d/ondrej-ubuntu-nginx-$exp" ]; then
-                            foundExp=true
-                        fi
-                    done
-
-                    if [ "$foundExp" = false ]; then
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        echo "Репозиторий nginx не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
-                        echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        # Добавляем репозиторий nginx
-                        sudo LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y 2>&1 | sudo tee -a "$logsInst" > /dev/null
-
-                        # Обновление списка пакетов
-                        sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                    fi
-                fi
 
                 # Конфигурация nginx для FastDL
                 nginx_fastdl="server {
