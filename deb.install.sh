@@ -55,7 +55,15 @@ repoExp=("jammy.list" "jammy.sources" "noble.list" "noble.sources")
 # Получаем текущую версию операционной системы
 disOs=$(lsb_release -si)
 relOs=$(lsb_release -sr)
+vCodename=$(lsb_release -sc)
 currOs="$disOs $relOs"
+
+# Репозиторий php и зеркало
+suryMirror="https://packages.sury.org/php/"
+yandexMirror="https://www.mirror.yandex.ru/mirrors/packages.sury.org/php/"
+
+# Получение HTTP статуса
+httpStatus=$(curl -s -o /dev/null -w "%{http_code}" "${suryMirror}dists/${vCodename}/InRelease")
 
 # Проверка, есть ли currOs в массиве suppOs
 foundOs=false
@@ -147,11 +155,20 @@ while true; do
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
                         echo "Репозиторий php не обнаружен. Добавляем..." | sudo tee -a "$logsInst"
                         echo "===================================" 2>&1 | sudo tee -a "$logsInst" > /dev/null
-                        # Скачиваем ключа зеркала репозитория Sury
-                        curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://www.mirror.yandex.ru/mirrors/packages.sury.org/php/apt.gpg 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                        
+                        if [ "$httpStatus" == "451" ]; then
+                            # Скачиваем ключа зеркала репозитория Sury
+                            curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg ${yandexMirror}apt.gpg 2>&1 | sudo tee -a "$logsInst" > /dev/null
 
-                        # Добавляем репозиторий php
-                        sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://www.mirror.yandex.ru/mirrors/packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' 2>&1 | sudo tee -a "$logsInst" > /dev/null
+                            # Добавляем репозиторий php
+                            echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] ${yandexMirror} ${vCodename} main" | sudo tee /etc/apt/sources.list.d/php.list > /dev/null
+                        else
+                            # Скачиваем ключ репозитория Sury
+                            curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg ${suryMirror}apt.gpg 2>&1 | sudo tee -a "$logsInst" > /dev/null
+
+                            # Добавляем репозиторий php
+                            echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] ${suryMirror} ${vCodename} main" | sudo tee /etc/apt/sources.list.d/php.list > /dev/null
+                        fi
 
                         # Обновление списка пакетов
                         sudo apt-get -y update 2>&1 | sudo tee -a "$logsInst" > /dev/null
